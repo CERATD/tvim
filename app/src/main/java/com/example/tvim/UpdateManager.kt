@@ -56,6 +56,11 @@ class UpdateManager(private val context: Context) {
     }
 
     fun downloadAndInstall(url: String) {
+        val destinationFile = File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS), "tvim_update.apk")
+        if (destinationFile.exists()) {
+            destinationFile.delete()
+        }
+
         val downloadManager = context.getSystemService(Context.DOWNLOAD_SERVICE) as DownloadManager
         val uri = Uri.parse(url)
         val request = DownloadManager.Request(uri)
@@ -78,10 +83,11 @@ class UpdateManager(private val context: Context) {
             }
         }
         
+        val filter = IntentFilter(DownloadManager.ACTION_DOWNLOAD_COMPLETE)
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-            context.registerReceiver(onComplete, IntentFilter(DownloadManager.ACTION_DOWNLOAD_COMPLETE), Context.RECEIVER_EXPORTED)
+            context.registerReceiver(onComplete, filter, Context.RECEIVER_EXPORTED)
         } else {
-            context.registerReceiver(onComplete, IntentFilter(DownloadManager.ACTION_DOWNLOAD_COMPLETE))
+            context.registerReceiver(onComplete, filter)
         }
     }
 

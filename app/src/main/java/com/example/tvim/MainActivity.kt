@@ -130,32 +130,8 @@ class MainActivity : ComponentActivity() {
 
                         InfoRow("Routine", "11:00 / 23:30")
                         
-                        Spacer(modifier = Modifier.height(64.dp))
-
-                        MinimalButton(
-                            text = "Test Morning",
-                            onClick = {
-                                val intent = Intent(context, NotificationReceiver::class.java).apply {
-                                    putExtra("type", "morning")
-                                }
-                                context.sendBroadcast(intent)
-                            }
-                        )
-
-                        Spacer(modifier = Modifier.height(16.dp))
-
-                        MinimalButton(
-                            text = "Test Night",
-                            onClick = {
-                                val intent = Intent(context, NotificationReceiver::class.java).apply {
-                                    putExtra("type", "night")
-                                }
-                                context.sendBroadcast(intent)
-                            }
-                        )
-                        
                         if (!hasNotificationPermission || !hasExactAlarmPermission) {
-                            Spacer(modifier = Modifier.height(32.dp))
+                            Spacer(modifier = Modifier.height(64.dp))
                             MinimalButton(
                                 text = "Setup Permissions",
                                 onClick = {
