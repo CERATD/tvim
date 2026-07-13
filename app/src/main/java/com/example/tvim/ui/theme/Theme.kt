@@ -10,22 +10,22 @@ import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.platform.LocalView
 import androidx.core.view.WindowCompat
 
-private val MinimalColorScheme = darkColorScheme(
-    primary = RedAccent,
-    onPrimary = Color.White,
-    background = PureBlack,
-    onBackground = Color.White,
-    surface = DarkGray,
-    onSurface = Color.White,
-    secondary = DarkGray,
-    onSecondary = RedAccent
-)
-
 @Composable
 fun TvimTheme(
+    primaryColor: Color = RedAccent,
     content: @Composable () -> Unit
 ) {
-    val colorScheme = MinimalColorScheme
+    val colorScheme = darkColorScheme(
+        primary = primaryColor,
+        onPrimary = Color.White,
+        background = PureBlack,
+        onBackground = Color.White,
+        surface = DarkGray,
+        onSurface = Color.White,
+        secondary = DarkGray,
+        onSecondary = primaryColor
+    )
+
     val view = LocalView.current
     if (!view.isInEditMode) {
         SideEffect {

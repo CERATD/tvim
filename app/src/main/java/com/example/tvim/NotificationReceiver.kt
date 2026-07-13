@@ -38,10 +38,11 @@ class NotificationReceiver : BroadcastReceiver() {
             notificationManager.createNotificationChannel(channel)
         }
 
+        val lang = AppSettings(context).language
         val text: String = if (type == "morning") {
-            "Доброе утро!"
+            Strings.get("notif_morning", lang)
         } else {
-            listOf("Спокойной ночи!", "Сладких снов булочка", "Пушистых снов)").random()
+            Strings.get("notif_night", lang)
         }
 
         val notification = NotificationCompat.Builder(context, channelId)
