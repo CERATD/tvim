@@ -298,7 +298,7 @@ fun SettingsScreen(appSettings: AppSettings, onColorChange: (Color) -> Unit, onL
         SectionHeader(Strings.get("notifications", lang))
         SettingsItem(
             title = Strings.get("check_updates", lang), 
-            subtitle = if (isCheckingUpdate) "..." else "v1.2.0",
+            subtitle = if (isCheckingUpdate) "..." else "v1.3.0",
             onClick = {
                 scope.launch {
                     isCheckingUpdate = true
