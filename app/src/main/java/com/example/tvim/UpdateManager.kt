@@ -47,8 +47,10 @@ class UpdateManager(private val context: Context) {
     suspend fun checkForUpdates(): GitHubRelease? = withContext(Dispatchers.IO) {
         try {
             val latest = service.getLatestRelease()
-            val currentVersion = BuildConfig.VERSION_NAME
-            if (latest.tagName != currentVersion) latest else null
+            val latestVersion = latest.tagName.removePrefix("v")
+            val currentVersion = BuildConfig.VERSION_NAME.removePrefix("v")
+            
+            if (latestVersion != currentVersion) latest else null
         } catch (e: Exception) {
             e.printStackTrace()
             null
