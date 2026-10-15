@@ -36,14 +36,15 @@ fun DayOfWeekPicker(selectedDays: List<Int>, lang: String, onToggle: (List<Int>)
     }
     Row(
         modifier = Modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.SpaceBetween
+        horizontalArrangement = Arrangement.spacedBy(6.dp)
     ) {
         dayLabels.forEachIndexed { index, label ->
             val day = index + 1
             val isSelected = selectedDays.contains(day)
             Box(
                 modifier = Modifier
-                    .size(42.dp)
+                    .weight(1f)
+                    .heightIn(min = 48.dp)
                     .clip(CircleShape)
                     .background(if (isSelected) MaterialTheme.colorScheme.primary else Color(0xFF1A1A1A))
                     .clickable {
@@ -79,14 +80,14 @@ fun SettingsRow(
         modifier = Modifier
             .fillMaxWidth()
             .clickable(enabled = onClick != null) { onClick?.invoke() }
-            .padding(vertical = 14.dp),
+            .clip(androidx.compose.foundation.shape.RoundedCornerShape(16.dp)).background(Color(0xFF1B1B1B)).padding(16.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
         Icon(icon, contentDescription = null, tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(24.dp))
         Spacer(modifier = Modifier.width(16.dp))
         Text(title, color = Color.White, fontSize = 16.sp, modifier = Modifier.weight(1f))
         if (value != null) {
-            Text(value, color = GrayText, fontSize = 14.sp)
+            Text(value, color = GrayText, fontSize = 14.sp, maxLines = 1, overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis, modifier = Modifier.widthIn(max = 150.dp))
             Spacer(modifier = Modifier.width(8.dp))
             Icon(Icons.Default.ChevronRight, contentDescription = null, tint = GrayText, modifier = Modifier.size(20.dp))
         } else if (content != null) {
@@ -103,70 +104,72 @@ fun SoundPickerDialog(
     lang: String
 ) {
     val context = LocalContext.current
-    val defaultSounds = listOf("Morning Light", "Deep Moon", "Solar Rise", "Star Night", "Soft Piano", "Minimal")
+    val defaultSounds = AlarmSounds.builtIns.keys.toList()
+    var selected by remember { mutableStateOf(currentSound) }
+    val preview = remember { AlarmAudio(context) }
+    DisposableEffect(Unit) { onDispose { preview.stop() } }
+    val lifecycle = androidx.lifecycle.compose.LocalLifecycleOwner.current.lifecycle
+    DisposableEffect(lifecycle) {
+        val observer = androidx.lifecycle.LifecycleEventObserver { _, event ->
+            if (event == androidx.lifecycle.Lifecycle.Event.ON_STOP) preview.stop()
+        }
+        lifecycle.addObserver(observer)
+        onDispose { lifecycle.removeObserver(observer); preview.stop() }
+    }
     
     val filePickerLauncher = rememberLauncherForActivityResult(
-        contract = ActivityResultContracts.GetContent()
+        contract = ActivityResultContracts.OpenDocument()
     ) { uri: Uri? ->
         uri?.let {
-            val fileName = getFileName(context, it) ?: "Imported Sound"
-            onSelect(fileName)
+            try {
+                context.contentResolver.takePersistableUriPermission(it, android.content.Intent.FLAG_GRANT_READ_URI_PERMISSION)
+                val candidate = it.toString()
+                check(preview.start(candidate, 0.7f, fallback = false))
+                selected = candidate
+            } catch (_: Exception) {
+                android.widget.Toast.makeText(context, if (lang == "ru") "Не удалось открыть аудиофайл" else "Cannot open audio file", android.widget.Toast.LENGTH_LONG).show()
+            }
         }
     }
 
-    AlertDialog(
-        onDismissRequest = onDismiss,
-        containerColor = Color(0xFF1A1A1A),
-        title = { Text(Strings.get("melody", lang), color = Color.White) },
-        text = {
-            LazyColumn(modifier = Modifier.heightIn(max = 400.dp)) {
-                item { 
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .clickable { filePickerLauncher.launch("audio/*") }
-                            .padding(vertical = 12.dp),
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Icon(Icons.Default.UploadFile, contentDescription = null, tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(24.dp))
-                        Text(Strings.get("import_sound", lang), color = Color.White, modifier = Modifier.padding(start = 16.dp))
+    DesignSheet(Strings.get("melody", lang), lang, onDismiss, { preview.stop(); onSelect(selected) }) {
+        OutlinedButton(onClick = { filePickerLauncher.launch(arrayOf("audio/*")) }, modifier = Modifier.fillMaxWidth()) {
+            Icon(Icons.Default.UploadFile, null)
+            Spacer(Modifier.width(12.dp))
+            Text(Strings.get("import_sound", lang))
+        }
+        val sounds = if (selected in defaultSounds) defaultSounds else listOf(selected) + defaultSounds
+        sounds.forEach { sound ->
+            Card(colors = CardDefaults.cardColors(containerColor = Color(0xFF1B1B1B)),
+                shape = androidx.compose.foundation.shape.RoundedCornerShape(20.dp)) {
+                Row(Modifier.fillMaxWidth().clickable { selected = sound }.padding(12.dp),
+                    verticalAlignment = Alignment.CenterVertically) {
+                    RadioButton(selected == sound, { selected = sound })
+                    Column(Modifier.weight(1f).padding(horizontal = 8.dp)) {
+                        Text(AlarmSounds.title(context, sound), maxLines = 2)
+                        Text(if (lang == "ru") "Звук будильника" else "Alarm sound", color = GrayText, fontSize = 12.sp)
                     }
-                }
-
-                item { Text(Strings.get("melodies", lang), color = GrayText, fontSize = 12.sp, modifier = Modifier.padding(vertical = 8.dp)) }
-                items(defaultSounds) { sound ->
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .clickable { onSelect(sound) }
-                            .padding(vertical = 12.dp),
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        RadioButton(
-                            selected = currentSound == sound,
-                            onClick = { onSelect(sound) },
-                            colors = RadioButtonDefaults.colors(selectedColor = MaterialTheme.colorScheme.primary)
-                        )
-                        Text(sound, color = Color.White, modifier = Modifier.padding(start = 8.dp))
+                    IconButton(onClick = { selected = sound; preview.start(sound, 0.7f) }) {
+                        Icon(Icons.Default.PlayArrow, if (lang == "ru") "Прослушать" else "Preview", tint = MaterialTheme.colorScheme.primary)
                     }
                 }
             }
-        },
-        confirmButton = {},
-        dismissButton = {
-            TextButton(onClick = onDismiss) { Text(Strings.get("cancel", lang), color = Color.Gray) }
         }
-    )
+        OutlinedButton(onClick = { preview.stop() }, modifier = Modifier.fillMaxWidth()) {
+            Icon(Icons.Default.Stop, null)
+            Text(if (lang == "ru") "Остановить прослушивание" else "Stop preview")
+        }
+    }
 }
 
 @Composable
 fun SettingsItem(title: String, subtitle: String, onClick: () -> Unit = {}) {
     Row(
-        modifier = Modifier.fillMaxWidth().padding(vertical = 12.dp).clickable { onClick() },
+        modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp).clip(androidx.compose.foundation.shape.RoundedCornerShape(16.dp)).background(Color(0xFF1B1B1B)).clickable { onClick() }.padding(16.dp),
         horizontalArrangement = Arrangement.SpaceBetween,
         verticalAlignment = Alignment.CenterVertically
     ) {
-        Column {
+        Column(Modifier.weight(1f)) {
             Text(title, color = Color.White, fontSize = 16.sp)
             Text(subtitle, color = GrayText, fontSize = 12.sp)
         }

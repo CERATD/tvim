@@ -3,14 +3,16 @@ package com.example.tvim
 import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
+import androidx.core.content.ContextCompat
 
 class AlarmTriggerReceiver : BroadcastReceiver() {
     override fun onReceive(context: Context, intent: Intent) {
-        val alarmId = intent.getStringExtra("ALARM_ID")
-        val alarmIntent = Intent(context, AlarmScreenActivity::class.java).apply {
-            putExtra("ALARM_ID", alarmId)
-            addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_REORDER_TO_FRONT)
-        }
-        context.startActivity(alarmIntent)
+        val id = intent.getStringExtra("ALARM_ID") ?: return
+        val storage = AlarmStorage(context)
+        val alarm = storage.getAlarms().find { it.id == id && it.isEnabled } ?: return
+        ContextCompat.startForegroundService(context,
+            Intent(context, AlarmService::class.java).putExtra("ALARM_ID", id))
+        if (alarm.days.isEmpty()) storage.updateAlarm(alarm.copy(isEnabled = false))
+        else AlarmScheduler(context).schedule(alarm)
     }
 }

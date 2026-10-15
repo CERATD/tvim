@@ -1,0 +1,24 @@
+Generated with the built-in image generation tool. Visual concept, not implemented screens.
+
+Use case: ui-mockup.
+Create ONE high-resolution comprehensive UI design board for the Android alarm application TVIM. The attached screenshot is a STYLE REFERENCE, not an image to merely duplicate. Faithfully extend its identity: pure black backgrounds, charcoal #1b1b1b rounded cards, vivid pure red #ff0000 accent, white large time numerals, muted gray secondary text, simple thin outlined icons, spacious restrained Android interface. No gradients, no blue/purple, no photographs, no 3D perspective or device hardware.
+
+Composition: large landscape 4K-style presentation board with exactly TWELVE complete flat portrait mobile screens, aligned in a clean 6-column x 2-row grid, generous narrow uniform gutters on dark neutral background. Every screen has identical width and height with a thin subtle outline, all content fully visible. Small understated title at top "TVIM / INTERFAȚĂ COMPLETĂ". Small screen captions outside above each frame. Use Romanian labels with correct diacritics, legible crisp typography, clear hierarchy, realistic carefully aligned controls. Make each screen genuinely distinct, complete and refined, consistent with the reference. Main screens have the same four-item bottom navigation "Alarmă", "Analiză", "Somn", "Setări", red active icon and gray other icons. Secondary pages have back or close and save actions.
+
+Top row, left to right:
+1. "01 / ALARME": TVIM red wordmark and plus at top. Section "URMĂTOAREA ALARMĂ", prominent charcoal card time "07:30", label "Trezire", "Luni–Vineri", characteristic large red circular progress surrounding a red toggle as in reference. Below "TOATE ALARMELE", smaller 09:00 disabled and 18:45 enabled cards. Bottom navigation Alarmă selected.
+2. "02 / EDITARE": header "Editează alarma", large time "07:30", clean hour/minute picker, seven circular day chips L M M J V S D, label "Trezire", settings rows "Sunet", "Volum", "Vibrație", "Misiune", "Creștere treptată", red save button "Salvează".
+3. "03 / SUNETE": header "Sunetul alarmei", import button "Importă audio", six rows Morning Light / Deep Moon / Solar Rise / Star Night / Soft Piano / Minimal with radio selection and play icons. Morning Light selected red with understated waveform preview, controls "Ascultă" and "Oprește", save button.
+4. "04 / VIBRAȚIE": header "Sunet și vibrație", volume red slider "70%", vibration on toggle, pattern cards "Standard", "Puls", "Bătăi", "Melodie" with small pulse diagrams, gradual volume chips "Oprit", "1 min", "3 min", "5 min", red save button.
+5. "05 / MISIUNI": header "Oprirea alarmei", four large selectable cards with icons "Simplă", "Calcul", "Scuturare", "Tastare"; Calcul selected red outline, difficulty chips "Ușor", "Mediu", "Dificil", save.
+6. "06 / ALARMĂ ACTIVĂ": prominent time 07:30, label "Trezire", red concentric ring visual borrowing the reference toggle motif but showing a bell in center, date "Joi, 15 octombrie", generous space and large bottom red button "Oprește alarma".
+
+Bottom row:
+7. "07 / CALCUL": ringing mission screen 07:30 small header, red ring at top, instruction "Rezolvă pentru a opri", equation "24 + 18 = ?", answer field "42", attractive large 3-column numeric keypad and red confirm key, accessible spacing.
+8. "08 / SCUTURARE": ringing mission screen, title "Scutură telefonul", large thin red progress circle with "7 / 10" in center, minimal phone-motion line icon, instruction "Încă 3 mișcări".
+9. "09 / TASTARE": ringing mission screen, title "Scrie pentru a opri", target phrase "M-AM TREZIT", input containing "M-AM TRE", compact dark Romanian keyboard occupying bottom, red small progress indication, excellent legibility.
+10. "10 / ANALIZĂ": heading "Istoric", summary cards "Oprite 12" and "Ratate 1", small understated seven-day red/gray bar chart labeled as alarm events (not sleep tracking), list of real-example alarm history entries 07:30, 07:45, 08:00 with date, status and elapsed seconds. Analiză active in nav.
+11. "11 / SOMN": heading "Program de somn", wake time "07:30", seven day chips, planned duration "8 h" slider, bedtime summary "Ora de culcare 23:30", red button "Salvează programul", small note "Alarma apare în lista principală". Somn active in nav.
+12. "12 / SETĂRI": heading "Setări", grouped cards for "Aspect" with red color swatches and "Limbă — Română", "Permisiuni" with rows "Alarme exacte", "Notificări", "Ecran blocat" showing enabled state, "Verifică actualizările", "Raportează o problemă", footer "TVIM 1.4". Setări active in nav.
+
+This is a polished proposed full UI design, not a screenshot of implemented software. Avoid introducing unrelated features, marketing paragraphs, unreadable filler, giant decorative headings, clipped screens, overlapping UI, neon glows, handset mockups. Prioritize faithful red/black reference styling and cohesive usable screen design.

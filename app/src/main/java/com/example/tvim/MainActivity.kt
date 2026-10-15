@@ -70,7 +70,7 @@ class MainActivity : ComponentActivity() {
                     onResult = { isGranted ->
                         if (isGranted) {
                             scheduler.scheduleAll()
-                            NotificationReceiver.scheduleAlarms(context)
+
                         }
                     }
                 )
@@ -81,12 +81,29 @@ class MainActivity : ComponentActivity() {
                         showUpdateDialog = release
                     }
 
-                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                }
+                LaunchedEffect(Unit) {
+                    scheduler.scheduleAll()
+                    if (Build.VERSION.SDK_INT >= 33 &&
+                        ContextCompat.checkSelfPermission(context, Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED) {
                         launcher.launch(Manifest.permission.POST_NOTIFICATIONS)
-                    } else {
-                        scheduler.scheduleAll()
-                        NotificationReceiver.scheduleAlarms(context)
                     }
+                }
+                val lifecycle = androidx.lifecycle.compose.LocalLifecycleOwner.current.lifecycle
+                DisposableEffect(lifecycle) {
+                    val observer = androidx.lifecycle.LifecycleEventObserver { _, event ->
+                        if (event == androidx.lifecycle.Lifecycle.Event.ON_RESUME) {
+                            scheduler.scheduleAll()
+                            alarms = storage.getAlarms()
+                        }
+                    }
+                    lifecycle.addObserver(observer)
+                    val prefs = context.getSharedPreferences("alarms_prefs", Context.MODE_PRIVATE)
+                    val listener = android.content.SharedPreferences.OnSharedPreferenceChangeListener { _, key ->
+                        if (key == "alarms_list") alarms = storage.getAlarms()
+                    }
+                    prefs.registerOnSharedPreferenceChangeListener(listener)
+                    onDispose { lifecycle.removeObserver(observer); prefs.unregisterOnSharedPreferenceChangeListener(listener) }
                 }
 
                 // Update Dialog
@@ -94,12 +111,11 @@ class MainActivity : ComponentActivity() {
                     AlertDialog(
                         onDismissRequest = { showUpdateDialog = null },
                         title = { Text(Strings.get("check_updates", currentLanguage), color = MaterialTheme.colorScheme.primary, fontWeight = FontWeight.Bold) },
-                        text = { Text("Version ${release.tagName} is available. Update now?", color = Color.White) },
+                        text = { Text(if (currentLanguage == "ru") "Доступна версия ${release.tagName}. Открыть страницу загрузки?" else "Version ${release.tagName} is available. Open download page?", color = Color.White) },
                         containerColor = Color(0xFF1A1A1A),
                         confirmButton = {
                             TextButton(onClick = {
-                                val apkUrl = release.assets.firstOrNull { it.name.endsWith(".apk") }?.downloadUrl
-                                apkUrl?.let { updateManager.downloadAndInstall(it) }
+                                updateManager.openRelease(release)
                                 showUpdateDialog = null
                             }) {
                                 Text(Strings.get("save", currentLanguage), color = MaterialTheme.colorScheme.primary, fontWeight = FontWeight.Bold)
@@ -224,7 +240,7 @@ fun AlarmSettingsDialog(
             Column(
                 modifier = Modifier
                     .fillMaxSize()
-                    .statusBarsPadding()
+                    .systemBarsPadding().imePadding()
                     .padding(16.dp)
             ) {
                 Row(
@@ -241,23 +257,7 @@ fun AlarmSettingsDialog(
                         fontSize = 18.sp,
                         fontWeight = FontWeight.Medium
                     )
-                    TextButton(onClick = {
-                        val newAlarm = (alarm ?: Alarm(hour = 0, minute = 0)).copy(
-                            hour = timePickerState.hour,
-                            minute = timePickerState.minute,
-                            label = label,
-                            days = selectedDays,
-                            missionType = selectedMission,
-                            ringtoneName = ringtoneName,
-                            volume = volume,
-                            isVibrationEnabled = isVibrationEnabled,
-                            vibrationPattern = vibrationPattern,
-                            gradualWakeup = gradualWakeup
-                        )
-                        onSave(newAlarm)
-                    }) {
-                        Text(Strings.get("save", lang), color = MaterialTheme.colorScheme.primary, fontWeight = FontWeight.Bold)
-                    }
+                    Spacer(Modifier.width(48.dp))
                 }
 
                 Spacer(modifier = Modifier.height(24.dp))
@@ -271,7 +271,7 @@ fun AlarmSettingsDialog(
                             modifier = Modifier.fillMaxWidth(),
                             horizontalAlignment = Alignment.CenterHorizontally
                         ) {
-                            TimePicker(
+                            TimeInput(
                                 state = timePickerState,
                                 colors = TimePickerDefaults.colors(
                                     clockDialColor = Color(0xFF1A1A1A),
@@ -309,7 +309,7 @@ fun AlarmSettingsDialog(
                             SettingsRow(
                                 icon = Icons.Default.MusicNote,
                                 title = Strings.get("melody", lang),
-                                value = ringtoneName,
+                                value = AlarmSounds.title(LocalContext.current, ringtoneName),
                                 onClick = { showSoundPicker = true }
                             )
                             
@@ -357,6 +357,24 @@ fun AlarmSettingsDialog(
                             )
                         }
 
+                        Spacer(Modifier.height(24.dp))
+                    Button(modifier = Modifier.fillMaxWidth().heightIn(min = 56.dp), shape = RoundedCornerShape(16.dp), onClick = {
+                        val newAlarm = (alarm ?: Alarm(hour = 0, minute = 0)).copy(
+                            hour = timePickerState.hour,
+                            minute = timePickerState.minute,
+                            label = label,
+                            days = selectedDays,
+                            missionType = selectedMission,
+                            ringtoneName = ringtoneName,
+                            volume = volume,
+                            isVibrationEnabled = isVibrationEnabled,
+                            vibrationPattern = vibrationPattern,
+                            gradualWakeup = gradualWakeup
+                        )
+                        onSave(newAlarm)
+                    }) {
+                        Text(Strings.get("save", lang), color = Color.Black, fontWeight = FontWeight.Bold)
+                    }
                         if (alarm != null) {
                             Spacer(modifier = Modifier.height(32.dp))
                             Button(
@@ -401,7 +419,7 @@ fun AlarmSettingsDialog(
 
     if (showVibrationPicker) {
         VibrationPickerDialog(
-            currentPattern = vibrationPattern,
+            currentPattern = if (isVibrationEnabled) vibrationPattern else "Off",
             onDismiss = { showVibrationPicker = false },
             onSelect = {
                 vibrationPattern = it
@@ -468,76 +486,50 @@ fun LabelEditDialog(initialLabel: String, onDismiss: () -> Unit, onSave: (String
 
 @Composable
 fun VibrationPickerDialog(currentPattern: String, onDismiss: () -> Unit, onSelect: (String) -> Unit, lang: String) {
-    val patterns = listOf(
-        "Off" to "vibration_off",
-        "Standard" to "vibration_standard",
-        "Pulse" to "vibration_pulse",
-        "Knock" to "vibration_knock",
-        "Melody" to "vibration_melody"
-    )
-    AlertDialog(
-        onDismissRequest = onDismiss,
-        containerColor = Color(0xFF1A1A1A),
-        title = { Text(Strings.get("vibration", lang), color = Color.White) },
-        text = {
-            Column {
-                patterns.forEach { (pattern, key) ->
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .clickable { onSelect(pattern) }
-                            .padding(vertical = 12.dp),
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        RadioButton(
-                            selected = currentPattern == pattern,
-                            onClick = { onSelect(pattern) },
-                            colors = RadioButtonDefaults.colors(selectedColor = MaterialTheme.colorScheme.primary)
-                        )
-                        Text(Strings.get(key, lang), color = Color.White, modifier = Modifier.padding(start = 8.dp))
+    val patterns = listOf("Standard" to "vibration_standard", "Pulse" to "vibration_pulse",
+        "Knock" to "vibration_knock", "Melody" to "vibration_melody")
+    var selected by remember { mutableStateOf(if (currentPattern == "Off") "Standard" else currentPattern) }
+    var enabled by remember { mutableStateOf(currentPattern != "Off") }
+    DesignSheet(Strings.get("vibration", lang), lang, onDismiss, { onSelect(if (enabled) selected else "Off") }) {
+        SettingsRow(Icons.Default.Vibration, Strings.get("vibration", lang), content = {
+            Switch(enabled, { enabled = it })
+        })
+        patterns.chunked(2).forEach { row ->
+            Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                row.forEachIndexed { index, (pattern, key) ->
+                    Card(onClick = { selected = pattern; enabled = true }, modifier = Modifier.weight(1f),
+                        border = BorderStroke(1.dp, if (enabled && selected == pattern) MaterialTheme.colorScheme.primary else Color.Transparent),
+                        colors = CardDefaults.cardColors(containerColor = Color(0xFF1B1B1B)),
+                        shape = RoundedCornerShape(20.dp)) {
+                        Column(Modifier.fillMaxWidth().padding(20.dp), horizontalAlignment = Alignment.CenterHorizontally,
+                            verticalArrangement = Arrangement.spacedBy(16.dp)) {
+                            Icon(Icons.Default.Vibration, null, Modifier.size(32.dp),
+                                tint = if (enabled && selected == pattern) MaterialTheme.colorScheme.primary else Color.Gray)
+                            Text(Strings.get(key, lang), textAlign = TextAlign.Center)
+                            RadioButton(enabled && selected == pattern, { selected = pattern; enabled = true })
+                        }
                     }
                 }
             }
-        },
-        confirmButton = {},
-        dismissButton = {
-            TextButton(onClick = onDismiss) { Text(Strings.get("cancel", lang), color = Color.Gray) }
         }
-    )
+    }
 }
 
 @Composable
 fun GradualWakeupPickerDialog(currentValue: Int, onDismiss: () -> Unit, onSelect: (Int) -> Unit, lang: String) {
-    val values = listOf(0, 1, 3, 5, 10, 15)
-    AlertDialog(
-        onDismissRequest = onDismiss,
-        containerColor = Color(0xFF1A1A1A),
-        title = { Text(Strings.get("gradual_wakeup", lang), color = Color.White) },
-        text = {
-            Column {
-                values.forEach { value ->
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .clickable { onSelect(value) }
-                            .padding(vertical = 12.dp),
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        RadioButton(
-                            selected = currentValue == value,
-                            onClick = { onSelect(value) },
-                            colors = RadioButtonDefaults.colors(selectedColor = MaterialTheme.colorScheme.primary)
-                        )
-                        Text(if (value == 0) "Off" else "$value min", color = Color.White, modifier = Modifier.padding(start = 8.dp))
-                    }
+    var selected by remember { mutableIntStateOf(currentValue) }
+    DesignSheet(Strings.get("gradual_wakeup", lang), lang, onDismiss, { onSelect(selected) }) {
+        Text(if (lang == "ru") "Громкость плавно увеличивается до выбранного уровня." else "Volume gradually rises to your selected level.", color = GrayText)
+        listOf(0, 1, 3, 5, 10, 15).chunked(3).forEach { row ->
+            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                row.forEach { value ->
+                    FilterChip(selected == value, { selected = value },
+                        label = { Text(if (value == 0) (if (lang == "ru") "Выкл." else "Off") else "$value " + if (lang == "ru") "мин" else "min") },
+                        modifier = Modifier.weight(1f))
                 }
             }
-        },
-        confirmButton = {},
-        dismissButton = {
-            TextButton(onClick = onDismiss) { Text(Strings.get("cancel", lang), color = Color.Gray) }
         }
-    )
+    }
 }
 
 @Composable
@@ -554,36 +546,27 @@ fun MissionPickerDialog(
         MissionType.TYPING to ("mission_typing" to Icons.Default.Keyboard)
     )
 
-    AlertDialog(
-        onDismissRequest = onDismiss,
-        containerColor = Color(0xFF1A1A1A),
-        title = { Text(Strings.get("mission", lang), color = Color.White) },
-        text = {
-            Column {
-                missions.forEach { (type, info) ->
-                    val labelKey = info.first
-                    val icon = info.second
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .clickable { onSelect(type) }
-                            .padding(vertical = 12.dp),
-                        verticalAlignment = Alignment.CenterVertically
+    var selected by remember { mutableStateOf(currentMission) }
+    DesignSheet(Strings.get("mission", lang), lang, onDismiss, { onSelect(selected) }) {
+        missions.chunked(2).forEach { row ->
+            Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                row.forEach { (type, info) ->
+                    Card(
+                        onClick = { selected = type },
+                        modifier = Modifier.weight(1f),
+                        shape = RoundedCornerShape(20.dp),
+                        border = BorderStroke(1.dp, if (selected == type) MaterialTheme.colorScheme.primary else Color.Transparent),
+                        colors = CardDefaults.cardColors(containerColor = Color(0xFF1B1B1B))
                     ) {
-                        RadioButton(
-                            selected = currentMission == type,
-                            onClick = { onSelect(type) },
-                            colors = RadioButtonDefaults.colors(selectedColor = MaterialTheme.colorScheme.primary)
-                        )
-                        Icon(icon, contentDescription = null, tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(24.dp))
-                        Text(Strings.get(labelKey, lang), color = Color.White, modifier = Modifier.padding(start = 12.dp))
+                        Column(Modifier.fillMaxWidth().padding(20.dp), horizontalAlignment = Alignment.CenterHorizontally,
+                            verticalArrangement = Arrangement.spacedBy(16.dp)) {
+                            Icon(info.second, null, Modifier.size(36.dp), tint = if (selected == type) MaterialTheme.colorScheme.primary else Color.Gray)
+                            Text(Strings.get(info.first, lang), textAlign = TextAlign.Center)
+                            RadioButton(selected == type, { selected = type })
+                        }
                     }
                 }
             }
-        },
-        confirmButton = {},
-        dismissButton = {
-            TextButton(onClick = onDismiss) { Text(Strings.get("cancel", lang), color = Color.Gray) }
         }
-    )
+    }
 }

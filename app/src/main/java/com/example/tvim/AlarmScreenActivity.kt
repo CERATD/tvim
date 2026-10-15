@@ -1,20 +1,21 @@
 package com.example.tvim
 
 import android.app.KeyguardManager
+import android.content.Intent
+import androidx.activity.compose.BackHandler
 import android.content.Context
 import android.hardware.Sensor
 import android.hardware.SensorEvent
 import android.hardware.SensorEventListener
 import android.hardware.SensorManager
-import android.media.AudioAttributes
-import android.media.Ringtone
-import android.media.RingtoneManager
 import android.os.*
 import android.view.WindowManager
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.grid.GridCells
@@ -22,11 +23,15 @@ import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.filled.NotificationsActive
+import androidx.compose.material.icons.filled.Vibration
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.Backspace
-import androidx.compose.material.icons.filled.Backspace
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -43,14 +48,15 @@ import kotlin.math.sqrt
 import kotlin.random.Random
 
 class AlarmScreenActivity : ComponentActivity(), SensorEventListener {
-    private var ringtone: Ringtone? = null
-    private var vibrator: Vibrator? = null
     private var sensorManager: SensorManager? = null
     private var shakeCount = mutableStateOf(0)
     private var requiredShakes = 30
-    private var missionType = mutableStateOf(MissionType.MATH)
+    private var missionType = mutableStateOf(MissionType.NONE)
+    private var alarmId: String? = null
+    private var lastShake = 0L
     private lateinit var appSettings: AppSettings
     private lateinit var lang: String
+    private lateinit var typingPhrase: BookPhrase
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -58,26 +64,43 @@ class AlarmScreenActivity : ComponentActivity(), SensorEventListener {
         appSettings = AppSettings(this)
         lang = appSettings.language
 
-        val alarmId = intent.getStringExtra("ALARM_ID")
+        alarmId = getSharedPreferences("alarm_runtime", MODE_PRIVATE).getString("active", null)
+        if (alarmId == null) { finish(); return }
         val alarm = AlarmStorage(this).getAlarms().find { it.id == alarmId }
         alarm?.let {
             missionType.value = it.missionType
-            requiredShakes = it.difficulty * 10
+            requiredShakes = it.difficulty.coerceIn(1, 5) * 10
         }
 
         setupUnlock()
-        startAlarmEffects()
+        window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
         
         if (missionType.value == MissionType.SHAKE) {
             sensorManager = getSystemService(SENSOR_SERVICE) as SensorManager
-            sensorManager?.registerListener(this, sensorManager?.getDefaultSensor(Sensor.TYPE_ACCELEROMETER), SensorManager.SENSOR_DELAY_UI)
+            val sensor = sensorManager?.getDefaultSensor(Sensor.TYPE_ACCELEROMETER)
+            if (sensor == null) missionType.value = MissionType.TYPING
+            else sensorManager?.registerListener(this, sensor, SensorManager.SENSOR_DELAY_UI)
         }
 
+        if (missionType.value == MissionType.TYPING) typingPhrase = TypingChallengeStore(this).phraseFor(
+            alarmId ?: return,
+            getSharedPreferences("alarm_runtime", MODE_PRIVATE).getLong("started", 0)
+        )
+
         setContent {
+            BackHandler { }
+            LaunchedEffect(Unit) {
+                while (true) {
+                    val current = getSharedPreferences("alarm_runtime", MODE_PRIVATE).getString("active", null)
+                    if (current == null) { finish(); break }
+                    if (current != alarmId) { recreate(); break }
+                    kotlinx.coroutines.delay(500)
+                }
+            }
             TvimTheme(primaryColor = appSettings.primaryColor) {
                 Surface(modifier = Modifier.fillMaxSize(), color = Color.Black) {
                     Column(
-                        modifier = Modifier.fillMaxSize().padding(24.dp),
+                        modifier = Modifier.fillMaxSize().systemBarsPadding().imePadding().verticalScroll(rememberScrollState()).padding(24.dp),
                         horizontalAlignment = Alignment.CenterHorizontally,
                         verticalArrangement = Arrangement.SpaceBetween
                     ) {
@@ -85,14 +108,18 @@ class AlarmScreenActivity : ComponentActivity(), SensorEventListener {
                             Text(
                                 text = String.format(Locale.getDefault(), "%02d:%02d", Calendar.getInstance().get(Calendar.HOUR_OF_DAY), Calendar.getInstance().get(Calendar.MINUTE)),
                                 color = Color.White,
-                                fontSize = 24.sp,
+                                fontSize = if (missionType.value == MissionType.NONE) 64.sp else 32.sp,
                                 fontWeight = FontWeight.Light
                             )
                             Spacer(modifier = Modifier.height(32.dp))
-                            AlarmRingVisualization()
+                            Text(alarm?.label.orEmpty(), color = Color.Gray)
+                            if (missionType.value == MissionType.NONE) {
+                                Spacer(Modifier.height(48.dp))
+                                AlarmRingVisualization()
+                            }
                         }
 
-                        Box(modifier = Modifier.weight(1f), contentAlignment = Alignment.Center) {
+                        Box(modifier = Modifier.fillMaxWidth().padding(vertical = 24.dp), contentAlignment = Alignment.Center) {
                             when (missionType.value) {
                                 MissionType.MATH -> MathMission { finishMission() }
                                 MissionType.SHAKE -> ShakeMission(shakeCount.value, requiredShakes)
@@ -114,17 +141,16 @@ class AlarmScreenActivity : ComponentActivity(), SensorEventListener {
                 drawCircle(color = primaryColor.copy(alpha = 0.1f), style = Stroke(width = 2.dp.toPx()))
                 drawCircle(color = primaryColor, style = Stroke(width = 12.dp.toPx()))
             }
-            Box(
-                modifier = Modifier
-                    .size(120.dp)
-                    .clip(CircleShape)
-                    .background(primaryColor)
-            )
+            Canvas(Modifier.size(124.dp)) {
+                drawCircle(color = primaryColor.copy(alpha = 0.35f), style = Stroke(width = 2.dp.toPx()))
+            }
+            Icon(Icons.Default.NotificationsActive, null, Modifier.size(56.dp), tint = primaryColor)
         }
     }
 
     private fun finishMission() {
-        stopAlarm()
+        startService(Intent(this, AlarmService::class.java).setAction(AlarmService.STOP).putExtra("ALARM_ID", alarmId))
+        sensorManager?.unregisterListener(this)
         finish()
     }
 
@@ -164,7 +190,7 @@ class AlarmScreenActivity : ComponentActivity(), SensorEventListener {
         val buttons = listOf("1", "2", "3", "4", "5", "6", "7", "8", "9", "DEL", "0", "OK")
         LazyVerticalGrid(
             columns = GridCells.Fixed(3),
-            modifier = Modifier.width(280.dp),
+            modifier = Modifier.widthIn(max = 280.dp).fillMaxWidth().height(320.dp),
             verticalArrangement = Arrangement.spacedBy(16.dp),
             horizontalArrangement = Arrangement.spacedBy(16.dp)
         ) {
@@ -203,21 +229,49 @@ class AlarmScreenActivity : ComponentActivity(), SensorEventListener {
         Column(horizontalAlignment = Alignment.CenterHorizontally) {
             Text(Strings.get("shake_to_dismiss", lang), color = Color.Gray, fontSize = 12.sp, letterSpacing = 2.sp)
             Spacer(modifier = Modifier.height(16.dp))
-            Text("$count / $required", color = Color.White, fontSize = 42.sp, fontWeight = FontWeight.Bold)
+            Box(Modifier.size(220.dp), contentAlignment = Alignment.Center) {
+                CircularProgressIndicator(progress = { (count.toFloat() / required).coerceIn(0f, 1f) },
+                    modifier = Modifier.fillMaxSize(), strokeWidth = 8.dp, trackColor = Color(0xFF242424))
+                Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                    Icon(Icons.Default.Vibration, null, Modifier.size(48.dp), tint = MaterialTheme.colorScheme.primary)
+                    Spacer(Modifier.height(16.dp))
+                    Text("$count / $required", color = Color.White, fontSize = 36.sp)
+                }
+            }
         }
     }
 
     @Composable
     fun TypingMission(onComplete: () -> Unit) {
-        val target = if (lang == "ru") "Я ПРОСНУЛСЯ" else "I AM AWAKE"
-        var typed by remember { mutableStateOf("") }
+        val target = typingPhrase.text(lang)
+        var typed by rememberSaveable(typingPhrase.id) { mutableStateOf("") }
+        var completed by remember { mutableStateOf(false) }
         Column(horizontalAlignment = Alignment.CenterHorizontally) {
             Text(Strings.get("type_to_dismiss", lang), color = Color.Gray, fontSize = 12.sp)
-            Text(target, color = Color.White, fontSize = 24.sp, fontWeight = FontWeight.Bold)
-            Spacer(modifier = Modifier.height(24.dp))
+            Spacer(modifier = Modifier.height(12.dp))
+            Card(colors = CardDefaults.cardColors(containerColor = Color(0xFF1B1B1B)), shape = RoundedCornerShape(20.dp)) {
+                Text(target, modifier = Modifier.padding(24.dp), color = Color.White, fontSize = 22.sp, fontWeight = FontWeight.Medium, textAlign = TextAlign.Center)
+            }
+            Spacer(modifier = Modifier.height(8.dp))
+            Text(if (lang == "ru") "Джордж Р. Р. Мартин · Игра престолов" else "George R. R. Martin · A Game of Thrones",
+                color = Color.Gray, fontSize = 11.sp, textAlign = TextAlign.Center)
+            Spacer(modifier = Modifier.height(12.dp))
+            Text(if (lang == "ru") "Регистр, пунктуация и лишние пробелы не учитываются."
+                else "Capitalization, punctuation and extra spaces do not matter.",
+                color = Color.Gray, fontSize = 12.sp, textAlign = TextAlign.Center)
+            Spacer(modifier = Modifier.height(16.dp))
             OutlinedTextField(
                 value = typed,
-                onValueChange = { typed = it; if (it.equals(target, true)) onComplete() },
+                onValueChange = {
+                    typed = it.take(500)
+                    if (!completed && TypingPhrases.matches(typed, target)) {
+                        completed = true
+                        onComplete()
+                    }
+                },
+                keyboardOptions = KeyboardOptions(capitalization = KeyboardCapitalization.Sentences, autoCorrectEnabled = false),
+                minLines = 2,
+                maxLines = 5,
                 colors = OutlinedTextFieldDefaults.colors(focusedBorderColor = MaterialTheme.colorScheme.primary, unfocusedBorderColor = Color.DarkGray),
                 textStyle = LocalTextStyle.current.copy(color = Color.White, textAlign = TextAlign.Center),
                 modifier = Modifier.fillMaxWidth()
@@ -229,9 +283,9 @@ class AlarmScreenActivity : ComponentActivity(), SensorEventListener {
     fun DefaultMission(onComplete: () -> Unit) {
         Button(
             onClick = onComplete,
-            modifier = Modifier.fillMaxWidth(0.8f).height(56.dp),
+            modifier = Modifier.fillMaxWidth().heightIn(min = 56.dp),
             colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary),
-            shape = RoundedCornerShape(28.dp)
+            shape = RoundedCornerShape(16.dp)
         ) {
             Text(Strings.get("dismiss", lang), color = Color.Black, fontWeight = FontWeight.Bold, fontSize = 18.sp)
         }
@@ -248,23 +302,10 @@ class AlarmScreenActivity : ComponentActivity(), SensorEventListener {
         }
     }
 
-    private fun startAlarmEffects() {
-        val alarmUri = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_ALARM) ?: RingtoneManager.getDefaultUri(RingtoneManager.TYPE_RINGTONE)
-        ringtone = RingtoneManager.getRingtone(this, alarmUri)
-        ringtone?.audioAttributes = AudioAttributes.Builder().setUsage(AudioAttributes.USAGE_ALARM).setContentType(AudioAttributes.CONTENT_TYPE_SONIFICATION).build()
-        ringtone?.play()
-        vibrator = getSystemService(Context.VIBRATOR_SERVICE) as Vibrator
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            vibrator?.vibrate(VibrationEffect.createWaveform(longArrayOf(0, 500, 500), 0))
-        } else {
-            vibrator?.vibrate(longArrayOf(0, 500, 500), 0)
-        }
-    }
-
-    private fun stopAlarm() {
-        ringtone?.stop()
-        vibrator?.cancel()
-        sensorManager?.unregisterListener(this)
+    override fun onNewIntent(intent: Intent) {
+        super.onNewIntent(intent)
+        setIntent(intent)
+        recreate()
     }
 
     override fun onSensorChanged(event: SensorEvent?) {
@@ -273,7 +314,8 @@ class AlarmScreenActivity : ComponentActivity(), SensorEventListener {
             val y = event.values[1]
             val z = event.values[2]
             val acceleration = sqrt(x * x + y * y + z * z) - SensorManager.GRAVITY_EARTH
-            if (acceleration > 5) {
+            if (acceleration > 8 && SystemClock.elapsedRealtime() - lastShake > 350) {
+                lastShake = SystemClock.elapsedRealtime()
                 shakeCount.value++
                 if (shakeCount.value >= requiredShakes) {
                     finishMission()
@@ -283,7 +325,5 @@ class AlarmScreenActivity : ComponentActivity(), SensorEventListener {
     }
 
     override fun onAccuracyChanged(sensor: Sensor?, accuracy: Int) {}
-    @Deprecated("Deprecated in Java", ReplaceWith("onBackPressedDispatcher.onBackPressed()"))
-    override fun onBackPressed() {}
-    override fun onDestroy() { stopAlarm(); super.onDestroy() }
+    override fun onDestroy() { sensorManager?.unregisterListener(this); super.onDestroy() }
 }

@@ -17,11 +17,13 @@ fun TvimTheme(
 ) {
     val colorScheme = darkColorScheme(
         primary = primaryColor,
-        onPrimary = Color.White,
+        onPrimary = Color.Black,
         background = PureBlack,
         onBackground = Color.White,
         surface = DarkGray,
         onSurface = Color.White,
+        surfaceVariant = Color(0xFF242424),
+        surfaceContainerHighest = DarkGray,
         secondary = DarkGray,
         onSecondary = primaryColor
     )

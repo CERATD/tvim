@@ -57,7 +57,7 @@ fun TvimDashboard(
     onAlarmEdit: (Alarm) -> Unit,
     onAddAlarm: () -> Unit
 ) {
-    var selectedTab by remember { mutableIntStateOf(0) }
+    var selectedTab by androidx.compose.runtime.saveable.rememberSaveable { mutableIntStateOf(0) }
 
     Scaffold(
         topBar = {
@@ -73,45 +73,11 @@ fun TvimDashboard(
         Box(modifier = Modifier.padding(padding).fillMaxSize()) {
             when (selectedTab) {
                 0 -> MainAlarmScreen(alarms, onAlarmToggle, onAlarmEdit, lang)
-                1 -> LockedScreen("tab_analysis", lang)
-                2 -> LockedScreen("tab_sleep", lang)
+                1 -> HistoryScreen(lang)
+                2 -> SleepScreen(storage, lang)
                 3 -> SettingsScreen(appSettings, onPrimaryColorChange, onLanguageChange, lang)
             }
         }
-    }
-}
-
-@Composable
-fun LockedScreen(tabKey: String, lang: String) {
-    Column(
-        modifier = Modifier.fillMaxSize(),
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.Center
-    ) {
-        Icon(
-            Icons.Default.Lock, 
-            contentDescription = null, 
-            tint = MaterialTheme.colorScheme.primary, 
-            modifier = Modifier.size(64.dp)
-        )
-        Spacer(modifier = Modifier.height(24.dp))
-        Text(
-            text = Strings.get(tabKey, lang).uppercase(),
-            color = Color.White,
-            fontSize = 20.sp,
-            fontWeight = FontWeight.Bold
-        )
-        Text(
-            text = Strings.get("closed_temp", lang),
-            color = GrayText,
-            fontSize = 14.sp
-        )
-        Spacer(modifier = Modifier.height(8.dp))
-        Text(
-            text = Strings.get("coming_soon", lang),
-            color = GrayText.copy(alpha = 0.6f),
-            fontSize = 12.sp
-        )
     }
 }
 
@@ -122,13 +88,16 @@ fun MainAlarmScreen(
     onAlarmEdit: (Alarm) -> Unit,
     lang: String
 ) {
-    val nextAlarm = alarms.filter { it.isEnabled }.minByOrNull { it.hour * 60 + it.minute }
+    var now by remember { mutableLongStateOf(System.currentTimeMillis()) }
+    LaunchedEffect(Unit) { while (true) { now = System.currentTimeMillis(); kotlinx.coroutines.delay(1000) } }
+    val nextAlarm = alarms.filter { it.isEnabled }.minByOrNull { AlarmTime.next(it, now) }
     val remainingAlarms = if (nextAlarm != null) alarms.filter { it.id != nextAlarm.id } else alarms
 
     LazyColumn(
         modifier = Modifier.fillMaxSize().padding(horizontal = 16.dp),
         verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
+        item { AlarmReadiness(lang) }
         item {
             SectionHeader(Strings.get("next_alarm", lang))
             if (nextAlarm != null) {
@@ -166,14 +135,7 @@ fun NextAlarmCard(alarm: Alarm, onToggle: (Alarm, Boolean) -> Unit, onEdit: (Ala
         }
     }
 
-    val alarmTime = Calendar.getInstance().apply {
-        this.set(Calendar.HOUR_OF_DAY, alarm.hour)
-        this.set(Calendar.MINUTE, alarm.minute)
-        this.set(Calendar.SECOND, 0)
-        if (this.before(currentTime)) {
-            this.add(Calendar.DATE, 1)
-        }
-    }
+    val alarmTime = Calendar.getInstance().apply { timeInMillis = AlarmTime.next(alarm, currentTime.timeInMillis) }
 
     val totalDayMillis = 24 * 60 * 60 * 1000f
     val remainingMillis = alarmTime.timeInMillis - currentTime.timeInMillis
@@ -225,7 +187,7 @@ fun NextAlarmCard(alarm: Alarm, onToggle: (Alarm, Boolean) -> Unit, onEdit: (Ala
                 }
             }
             Text(
-                text = formatDays(alarm.days, lang),
+                text = formatDays(alarm.days, lang) + " · " + java.text.DateFormat.getDateInstance(java.text.DateFormat.SHORT).format(alarmTime.time),
                 color = GrayText,
                 fontSize = 12.sp
             )
@@ -298,12 +260,20 @@ fun SettingsScreen(appSettings: AppSettings, onColorChange: (Color) -> Unit, onL
         SectionHeader(Strings.get("notifications", lang))
         SettingsItem(
             title = Strings.get("check_updates", lang), 
-            subtitle = if (isCheckingUpdate) "..." else "v1.3.0",
+            subtitle = if (isCheckingUpdate) "..." else "v" + BuildConfig.VERSION_NAME,
             onClick = {
                 scope.launch {
                     isCheckingUpdate = true
-                    kotlinx.coroutines.delay(2000)
-                    isCheckingUpdate = false
+                    try {
+                        val manager = UpdateManager(context)
+                        val release = manager.checkForUpdates()
+                        if (release != null) manager.openRelease(release)
+                        else android.widget.Toast.makeText(context,
+                            if (manager.lastCheckFailed) {
+                                if (lang == "ru") "Не удалось проверить обновления. Повторите позже." else "Could not check for updates. Try again later."
+                            } else if (lang == "ru") "Новых версий не найдено." else "No new version found.",
+                            android.widget.Toast.LENGTH_LONG).show()
+                    } finally { isCheckingUpdate = false }
                 }
             }
         )
@@ -322,6 +292,7 @@ fun SettingsScreen(appSettings: AppSettings, onColorChange: (Color) -> Unit, onL
                 try {
                     context.startActivity(intent)
                 } catch (e: Exception) {
+                    android.widget.Toast.makeText(context, if (lang == "ru") "Установите почтовое приложение или напишите на указанный адрес" else "Install an email app or use the address shown", android.widget.Toast.LENGTH_LONG).show()
                 }
             }
         )
@@ -334,6 +305,7 @@ fun SettingsScreen(appSettings: AppSettings, onColorChange: (Color) -> Unit, onL
             onSelect = { 
                 appSettings.primaryColor = it
                 onColorChange(it)
+                showColorPicker = false
             },
             lang = lang
         )
@@ -459,7 +431,7 @@ fun LanguagePickerDialog(currentLang: String, onDismiss: () -> Unit, onSelect: (
 @Composable
 fun TvimTopBar(onAddClick: () -> Unit, lang: String) {
     Row(
-        modifier = Modifier.fillMaxWidth().statusBarsPadding().padding(horizontal = 16.dp, vertical = 12.dp),
+        modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 12.dp),
         horizontalArrangement = Arrangement.SpaceBetween,
         verticalAlignment = Alignment.CenterVertically
     ) {
