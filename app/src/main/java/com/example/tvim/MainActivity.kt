@@ -63,6 +63,7 @@ class MainActivity : ComponentActivity() {
                 var alarms by remember { mutableStateOf(storage.getAlarms()) }
                 var showAddDialog by remember { mutableStateOf(false) }
                 var showUpdateDialog by remember { mutableStateOf<GitHubRelease?>(null) }
+                var showDownloadStatus by remember { mutableStateOf(intent.getBooleanExtra("SHOW_UPDATES", false)) }
                 var editingAlarm by remember { mutableStateOf<Alarm?>(null) }
 
                 val launcher = rememberLauncherForActivityResult(
@@ -77,6 +78,8 @@ class MainActivity : ComponentActivity() {
                 )
 
                 LaunchedEffect(Unit) {
+                    val savedProgress = kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.IO) { UpdateDownloads(context).progress() }
+                    if (savedProgress.phase == UpdatePhase.READY) showDownloadStatus = true
                     val release = updateManager.checkForUpdates()
                     if (release != null) {
                         showUpdateDialog = release
@@ -108,27 +111,9 @@ class MainActivity : ComponentActivity() {
                     onDispose { lifecycle.removeObserver(observer); prefs.unregisterOnSharedPreferenceChangeListener(listener) }
                 }
 
-                // Update Dialog
-                showUpdateDialog?.let { release ->
-                    AlertDialog(
-                        onDismissRequest = { showUpdateDialog = null },
-                        title = { Text(Strings.get("check_updates", currentLanguage), color = MaterialTheme.colorScheme.primary, fontWeight = FontWeight.Bold) },
-                        text = { Text(if (currentLanguage == "ru") "Доступна версия ${release.tagName}. Открыть страницу загрузки?" else "Version ${release.tagName} is available. Open download page?", color = Color.White) },
-                        containerColor = Color(0xFF1A1A1A),
-                        confirmButton = {
-                            TextButton(onClick = {
-                                updateManager.openRelease(release)
-                                showUpdateDialog = null
-                            }) {
-                                Text(Strings.get("save", currentLanguage), color = MaterialTheme.colorScheme.primary, fontWeight = FontWeight.Bold)
-                            }
-                        },
-                        dismissButton = {
-                            TextButton(onClick = { showUpdateDialog = null }) {
-                                Text(Strings.get("cancel", currentLanguage), color = Color.Gray)
-                            }
-                        }
-                    )
+                if (showUpdateDialog != null || showDownloadStatus) {
+                    UpdateDialog(initial = showUpdateDialog, lang = currentLanguage,
+                        onDismiss = { showUpdateDialog = null; showDownloadStatus = false })
                 }
 
                 Scaffold(

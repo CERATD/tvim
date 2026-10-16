@@ -1,8 +1,6 @@
 package com.example.tvim
 
 import android.content.Context
-import android.content.Intent
-import android.net.Uri
 import com.google.gson.annotations.SerializedName
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
@@ -17,7 +15,9 @@ data class GitHubRelease(
 )
 data class GitHubAsset(
     @SerializedName("browser_download_url") val downloadUrl: String,
-    @SerializedName("name") val name: String
+    @SerializedName("name") val name: String,
+    @SerializedName("size") val size: Long = 0,
+    @SerializedName("digest") val digest: String? = null
 )
 interface GitHubService {
     @GET("releases/latest") suspend fun getLatestRelease(): GitHubRelease
@@ -31,14 +31,8 @@ class UpdateManager(private val context: Context) {
     suspend fun checkForUpdates(): GitHubRelease? = withContext(Dispatchers.IO) {
         lastCheckFailed = false
         try {
-            service.getLatestRelease().takeIf { VersionOrder.isNewer(it.tagName, BuildConfig.VERSION_NAME) && it.assets.any { asset -> asset.name.endsWith(".apk") } }
+            service.getLatestRelease().takeIf { VersionOrder.isNewer(it.tagName, BuildConfig.VERSION_NAME) && UpdatePolicy.asset(it) != null }
         } catch (e: CancellationException) { throw e }
         catch (_: Exception) { lastCheckFailed = true; null }
-    }
-    fun openRelease(release: GitHubRelease) {
-        val uri = Uri.parse("https://github.com/CERATD/tvim/releases/tag/" + Uri.encode(release.tagName))
-        runCatching { context.startActivity(Intent(Intent.ACTION_VIEW, uri)) }.onFailure {
-            android.widget.Toast.makeText(context, uri.toString(), android.widget.Toast.LENGTH_LONG).show()
-        }
     }
 }

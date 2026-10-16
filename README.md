@@ -1,4 +1,4 @@
-# Tvim 1.7
+# Tvim 1.8
 
 Aplicație Android pentru alarme, cu interfața existentă în rusă și engleză. Necesită Android 7.0 sau mai nou.
 
@@ -28,7 +28,7 @@ Oprirea poate fi simplă, prin calcul, prin tastare sau prin scuturare. Dacă te
 - Citirea datelor vechi completează setările lipsă; datele ilizibile sunt păstrate separat pentru recuperare.
 - Pagina „Următoarea alarmă” folosește data reală a următoarei declanșări.
 - Istoric real și configurarea unui program de trezire în locul paginilor blocate.
-- Verificarea actualizărilor compară numeric versiunile și deschide pagina oficială GitHub.
+- Verificarea actualizărilor compară numeric versiunile; din 1.8, descărcarea are loc în aplicație.
 - Ecranul de oprire se poate derula pe ecrane mici și cu tastatura deschisă.
 
 ## Construire
@@ -64,11 +64,11 @@ Arhiva cărții și textul integral nu sunt incluse în proiect sau APK.
 
 Interfața folosește conceptul din design/tvim-ui-concept-v1.png: negru, carduri rotunjite, accent roșu, timp digital compact, selecție de sunete și misiuni, progres circular și istoric cu date reale.
 
-## Download Tvim 1.7
+## Download Tvim 1.8
 
-[Download Tvim 1.7 APK](https://github.com/CERATD/tvim/raw/refs/heads/master/downloads/Tvim-1.7.apk)
+[Download Tvim 1.8 APK](https://github.com/CERATD/tvim/releases/download/v1.8/Tvim-1.8.apk)
 
-[Release notes](RELEASE-1.7.md)
+[Release notes](RELEASE-1.8.md)
 
 Android 7.0 or newer. This APK uses the same local debug signing key as the previously delivered 1.4 and 1.4.1 builds. See VERIFICATION.md for tests and limitations.
 
@@ -84,3 +84,11 @@ Stopwatch replaces Analysis; history is available in Settings. Timing survives a
 Imported audio is shared across all alarms. New imports are validated and copied into private app storage (50 MB maximum); identical content is stored only once. Existing content-URI alarm sounds are registered in the library without changing the alarms. Legacy URI entries still depend on the original file permission; reimport them to create a durable private copy.
 
 The ten built-in loops are deterministic original synthesis with different rhythms and timbres. Run tools/generate_sounds.py to reproduce them.
+
+## Update 1.8
+
+Updates download inside Tvim using Android DownloadManager. Open Settings → Updates, download, and install when ready. Progress persists across app recreation; Android handles background downloading and network waits. A completion notification opens the update screen. Failed or cancelled downloads can be retried.
+
+Before installation, Tvim verifies the official release URL, file size, GitHub SHA-256 digest when supplied, package ID, newer version code, release version name and matching signing certificate. Android asks for installation permission and confirmation. Temporary update state and APKs are excluded from backup and removed after successful updating on the next launch.
+
+Install 1.8 once using the APK link above, over the supplied 1.7 without uninstalling. Future releases can download from inside the app; the existing 1.7 still uses its original GitHub download flow.

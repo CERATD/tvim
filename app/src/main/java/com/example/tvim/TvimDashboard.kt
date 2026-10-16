@@ -246,7 +246,7 @@ fun SettingsScreen(appSettings: AppSettings, onColorChange: (Color) -> Unit, onL
     var showLangPicker by remember { mutableStateOf(false) }
     var showHistory by remember { mutableStateOf(false) }
     val scope = rememberCoroutineScope()
-    var isCheckingUpdate by remember { mutableStateOf(false) }
+    var showUpdates by remember { mutableStateOf(false) }
     val context = LocalContext.current
 
     Column(modifier = Modifier.fillMaxSize().padding(16.dp).verticalScroll(rememberScrollState())) {
@@ -262,23 +262,9 @@ fun SettingsScreen(appSettings: AppSettings, onColorChange: (Color) -> Unit, onL
         Spacer(modifier = Modifier.height(16.dp))
         SectionHeader(Strings.get("notifications", lang))
         SettingsItem(
-            title = Strings.get("check_updates", lang), 
-            subtitle = if (isCheckingUpdate) "..." else "v" + BuildConfig.VERSION_NAME,
-            onClick = {
-                scope.launch {
-                    isCheckingUpdate = true
-                    try {
-                        val manager = UpdateManager(context)
-                        val release = manager.checkForUpdates()
-                        if (release != null) manager.openRelease(release)
-                        else android.widget.Toast.makeText(context,
-                            if (manager.lastCheckFailed) {
-                                if (lang == "ru") "Не удалось проверить обновления. Повторите позже." else "Could not check for updates. Try again later."
-                            } else if (lang == "ru") "Новых версий не найдено." else "No new version found.",
-                            android.widget.Toast.LENGTH_LONG).show()
-                    } finally { isCheckingUpdate = false }
-                }
-            }
+            title = Strings.get("check_updates", lang),
+            subtitle = if (lang == "ru") "Загрузка и установка · v" + BuildConfig.VERSION_NAME else "Download and install · v" + BuildConfig.VERSION_NAME,
+            onClick = { showUpdates = true }
         )
 
         Spacer(modifier = Modifier.height(16.dp))
@@ -300,6 +286,8 @@ fun SettingsScreen(appSettings: AppSettings, onColorChange: (Color) -> Unit, onL
             }
         )
     }
+
+    if (showUpdates) UpdateDialog(lang = lang, onDismiss = { showUpdates = false })
 
     if (showHistory) androidx.compose.ui.window.Dialog(onDismissRequest = { showHistory = false },
         properties = androidx.compose.ui.window.DialogProperties(usePlatformDefaultWidth = false)) {
