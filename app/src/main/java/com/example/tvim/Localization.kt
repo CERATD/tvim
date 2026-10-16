@@ -4,7 +4,7 @@ object Strings {
     private val ru = mapOf(
         "app_name" to "TVIM",
         "tab_alarm" to "Будильник",
-        "tab_analysis" to "Анализ",
+        "tab_stopwatch" to "Секундомер",
         "tab_timer" to "Таймер",
         "tab_settings" to "Настройки",
         "next_alarm" to "СЛЕДУЮЩИЙ БУДИЛЬНИК",
@@ -80,7 +80,7 @@ object Strings {
     private val en = mapOf(
         "app_name" to "TVIM",
         "tab_alarm" to "Alarm",
-        "tab_analysis" to "Analysis",
+        "tab_stopwatch" to "Stopwatch",
         "tab_timer" to "Timer",
         "tab_settings" to "Settings",
         "next_alarm" to "NEXT ALARM",

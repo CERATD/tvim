@@ -43,6 +43,19 @@ class AlarmPlaybackTest {
         assertEquals(ShadowMediaPlayer.State.END, shadowOf(player).state)
     }
 
+    @Test fun privateLibraryAudioIsUsedWithoutFallingBackToBuiltIn() {
+        val file = java.io.File(context.cacheDir, "import.wav").apply {
+            writeBytes(context.resources.openRawResource(R.raw.morning_light).use { it.readBytes() })
+        }
+        val sound = SoundLibrary(context).importSound(android.net.Uri.fromFile(file))
+        file.delete()
+        val audio = AlarmAudio(context)
+        assertTrue(audio.start(sound.id, 0.6f, fallback = false))
+        assertEquals(android.net.Uri.fromFile(SoundLibrary(context).file(sound.id)), shadowOf(player).sourceUri)
+        assertTrue(player.isPlaying)
+        audio.stop()
+    }
+
     @Test fun missingImportedSoundFallsBackToBundledAudio() {
         val sound = "content://missing/audio"
         ShadowMediaPlayer.addException(DataSource.toDataSource(context, android.net.Uri.parse(sound)), java.io.IOException("Gone"))

@@ -1,5 +1,9 @@
 package com.example.tvim
 
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.CancellationException
 import android.content.Context
 import android.net.Uri
 import android.provider.OpenableColumns
@@ -105,6 +109,13 @@ fun SoundPickerDialog(
 ) {
     val context = LocalContext.current
     val defaultSounds = AlarmSounds.builtIns.keys.toList()
+    val library = remember { SoundLibrary(context) }
+    var imported by remember { mutableStateOf(library.entries()) }
+    var importing by remember { mutableStateOf(false) }
+    val scope = rememberCoroutineScope()
+    LaunchedEffect(Unit) {
+        imported = withContext(Dispatchers.IO) { library.rememberLegacySounds(); library.entries() }
+    }
     var selected by remember { mutableStateOf(currentSound) }
     val preview = remember { AlarmAudio(context) }
     DisposableEffect(Unit) { onDispose { preview.stop() } }
@@ -120,37 +131,58 @@ fun SoundPickerDialog(
     val filePickerLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.OpenDocument()
     ) { uri: Uri? ->
-        uri?.let {
-            try {
-                context.contentResolver.takePersistableUriPermission(it, android.content.Intent.FLAG_GRANT_READ_URI_PERMISSION)
-                val candidate = it.toString()
-                check(preview.start(candidate, 0.7f, fallback = false))
-                selected = candidate
-            } catch (_: Exception) {
-                android.widget.Toast.makeText(context, if (lang == "ru") "Не удалось открыть аудиофайл" else "Cannot open audio file", android.widget.Toast.LENGTH_LONG).show()
+        if (uri != null && !importing) {
+            importing = true
+            preview.stop()
+            scope.launch {
+                try {
+                    val entry = withContext(Dispatchers.IO) { library.importSound(uri) }
+                    imported = library.entries()
+                    selected = entry.id
+                } catch (e: CancellationException) { throw e }
+                catch (_: Exception) {
+                    android.widget.Toast.makeText(context, if (lang == "ru") "Не удалось сохранить аудио. Выберите доступный аудиофайл до 50 МБ."
+                        else "Cannot save audio. Choose an accessible audio file up to 50 MB.", android.widget.Toast.LENGTH_LONG).show()
+                } finally { importing = false }
             }
         }
     }
 
-    DesignSheet(Strings.get("melody", lang), lang, onDismiss, { preview.stop(); onSelect(selected) }) {
-        OutlinedButton(onClick = { filePickerLauncher.launch(arrayOf("audio/*")) }, modifier = Modifier.fillMaxWidth()) {
+    DesignSheet(Strings.get("melody", lang), lang, onDismiss, { preview.stop(); onSelect(selected) }, saveEnabled = !importing) {
+        OutlinedButton(onClick = { filePickerLauncher.launch(arrayOf("audio/*")) }, enabled = !importing, modifier = Modifier.fillMaxWidth()) {
             Icon(Icons.Default.UploadFile, null)
             Spacer(Modifier.width(12.dp))
             Text(Strings.get("import_sound", lang))
         }
-        val sounds = if (selected in defaultSounds) defaultSounds else listOf(selected) + defaultSounds
-        sounds.forEach { sound ->
-            Card(colors = CardDefaults.cardColors(containerColor = Color(0xFF1B1B1B)),
-                shape = androidx.compose.foundation.shape.RoundedCornerShape(20.dp)) {
-                Row(Modifier.fillMaxWidth().clickable { selected = sound }.padding(12.dp),
-                    verticalAlignment = Alignment.CenterVertically) {
-                    RadioButton(selected == sound, { selected = sound })
-                    Column(Modifier.weight(1f).padding(horizontal = 8.dp)) {
-                        Text(AlarmSounds.title(context, sound), maxLines = 2)
-                        Text(if (lang == "ru") "Звук будильника" else "Alarm sound", color = GrayText, fontSize = 12.sp)
-                    }
-                    IconButton(onClick = { selected = sound; preview.start(sound, 0.7f) }) {
-                        Icon(Icons.Default.PlayArrow, if (lang == "ru") "Прослушать" else "Preview", tint = MaterialTheme.colorScheme.primary)
+        if (importing) {
+            LinearProgressIndicator(Modifier.fillMaxWidth())
+            Text(if (lang == "ru") "Сохраняю мелодию…" else "Saving sound…", color = GrayText)
+        }
+        Text(if (lang == "ru") "Импорт один раз — мелодия доступна всем будильникам. До 50 МБ."
+            else "Import once and use in any alarm. Up to 50 MB.", color = GrayText, fontSize = 12.sp)
+        val custom = (imported.map { it.id } + listOf(selected).filter { it !in defaultSounds }).distinct()
+        val groups = listOf(
+            (if (lang == "ru") "МОИ МЕЛОДИИ" else "MY SOUNDS") to custom,
+            (if (lang == "ru") "ВСТРОЕННЫЕ" else "BUILT-IN") to defaultSounds)
+        groups.forEach { (heading, sounds) ->
+            if (sounds.isNotEmpty()) Text(heading, color = GrayText, fontSize = 12.sp)
+            sounds.forEach { sound ->
+                Card(colors = CardDefaults.cardColors(containerColor = Color(0xFF1B1B1B)),
+                    shape = androidx.compose.foundation.shape.RoundedCornerShape(20.dp)) {
+                    Row(Modifier.fillMaxWidth().clickable(enabled = !importing) { selected = sound }.padding(12.dp),
+                        verticalAlignment = Alignment.CenterVertically) {
+                        RadioButton(selected == sound, { selected = sound }, enabled = !importing)
+                        Column(Modifier.weight(1f).padding(horizontal = 8.dp)) {
+                            Text(AlarmSounds.title(context, sound), maxLines = 2)
+                            Text(AlarmSounds.description(sound, lang), color = GrayText, fontSize = 12.sp)
+                        }
+                        IconButton(enabled = !importing, onClick = {
+                            if (preview.start(sound, 0.7f, fallback = false)) selected = sound
+                            else android.widget.Toast.makeText(context, if (lang == "ru") "Файл недоступен. Импортируйте его снова."
+                                else "File unavailable. Import it again.", android.widget.Toast.LENGTH_LONG).show()
+                        }) {
+                            Icon(Icons.Default.PlayArrow, if (lang == "ru") "Прослушать" else "Preview", tint = MaterialTheme.colorScheme.primary)
+                        }
                     }
                 }
             }
@@ -191,7 +223,7 @@ fun getFileName(context: Context, uri: Uri): String? {
         }
     }
     if (result == null) {
-        result = uri.path
+        result = uri.path?.replace('\\', '/')
         val cut = result?.lastIndexOf('/') ?: -1
         if (cut != -1) {
             result = result?.substring(cut + 1)

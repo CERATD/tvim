@@ -17,7 +17,7 @@ import androidx.compose.ui.window.DialogProperties
 
 @Composable
 fun DesignSheet(title: String, lang: String, onDismiss: () -> Unit, onSave: () -> Unit,
-    content: @Composable ColumnScope.() -> Unit) {
+    saveEnabled: Boolean = true, content: @Composable ColumnScope.() -> Unit) {
     Dialog(onDismissRequest = onDismiss, properties = DialogProperties(usePlatformDefaultWidth = false)) {
         Surface(Modifier.fillMaxSize(), color = Color.Black) {
             Column(Modifier.fillMaxSize().systemBarsPadding().imePadding().padding(20.dp)) {
@@ -29,7 +29,7 @@ fun DesignSheet(title: String, lang: String, onDismiss: () -> Unit, onSave: () -
                 }
                 Column(Modifier.weight(1f).verticalScroll(rememberScrollState()).padding(vertical = 24.dp),
                     verticalArrangement = Arrangement.spacedBy(16.dp), content = content)
-                Button(onClick = onSave, modifier = Modifier.fillMaxWidth().heightIn(min = 56.dp),
+                Button(onClick = onSave, enabled = saveEnabled, modifier = Modifier.fillMaxWidth().heightIn(min = 56.dp),
                     shape = RoundedCornerShape(16.dp)) {
                     Text(Strings.get("save", lang), color = Color.Black)
                 }

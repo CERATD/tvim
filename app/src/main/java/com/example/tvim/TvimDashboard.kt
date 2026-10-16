@@ -73,7 +73,7 @@ fun TvimDashboard(
         Box(modifier = Modifier.padding(padding).fillMaxSize()) {
             when (selectedTab) {
                 0 -> MainAlarmScreen(alarms, onAlarmToggle, onAlarmEdit, lang)
-                1 -> HistoryScreen(lang)
+                1 -> StopwatchScreen(lang)
                 2 -> TimerScreen(lang)
                 3 -> SettingsScreen(appSettings, onPrimaryColorChange, onLanguageChange, lang)
             }
@@ -244,6 +244,7 @@ fun AlarmCard(alarm: Alarm, onToggle: (Boolean) -> Unit, onEdit: () -> Unit, lan
 fun SettingsScreen(appSettings: AppSettings, onColorChange: (Color) -> Unit, onLanguageChange: (String) -> Unit, lang: String) {
     var showColorPicker by remember { mutableStateOf(false) }
     var showLangPicker by remember { mutableStateOf(false) }
+    var showHistory by remember { mutableStateOf(false) }
     val scope = rememberCoroutineScope()
     var isCheckingUpdate by remember { mutableStateOf(false) }
     val context = LocalContext.current
@@ -252,6 +253,8 @@ fun SettingsScreen(appSettings: AppSettings, onColorChange: (Color) -> Unit, onL
         Text(Strings.get("settings_title", lang), color = Color.White, fontSize = 24.sp, fontWeight = FontWeight.Bold)
         Spacer(modifier = Modifier.height(24.dp))
         
+        SettingsItem(if (lang == "ru") "История будильников" else "Alarm history",
+            if (lang == "ru") "Срабатывания и время отключения" else "Alarm events and dismissal times", { showHistory = true })
         SectionHeader(Strings.get("appearance", lang))
         SettingsItem(Strings.get("theme_color", lang), Strings.get("theme_custom", lang), onClick = { showColorPicker = true })
         SettingsItem(Strings.get("language", lang), if (appSettings.language == "ru") "Русский" else "English", onClick = { showLangPicker = true })
@@ -296,6 +299,16 @@ fun SettingsScreen(appSettings: AppSettings, onColorChange: (Color) -> Unit, onL
                 }
             }
         )
+    }
+
+    if (showHistory) androidx.compose.ui.window.Dialog(onDismissRequest = { showHistory = false },
+        properties = androidx.compose.ui.window.DialogProperties(usePlatformDefaultWidth = false)) {
+        Surface(Modifier.fillMaxSize(), color = Color.Black) {
+            Column(Modifier.fillMaxSize().systemBarsPadding()) {
+                TextButton(onClick = { showHistory = false }) { Text(if (lang == "ru") "Назад" else "Back") }
+                Box(Modifier.weight(1f)) { HistoryScreen(lang) }
+            }
+        }
     }
 
     if (showColorPicker) {
@@ -463,8 +476,8 @@ fun TvimBottomNavigation(selectedTab: Int, lang: String, onTabSelected: (Int) ->
     NavigationBar(containerColor = Color.Black, tonalElevation = 0.dp) {
         val items = listOf(
             Triple(Strings.get("tab_alarm", lang), Icons.Outlined.Alarm, 0),
-            Triple(Strings.get("tab_analysis", lang), Icons.Outlined.BarChart, 1),
-            Triple(Strings.get("tab_timer", lang), Icons.Outlined.Timer, 2),
+            Triple(Strings.get("tab_stopwatch", lang), Icons.Outlined.Timer, 1),
+            Triple(Strings.get("tab_timer", lang), Icons.Outlined.HourglassEmpty, 2),
             Triple(Strings.get("tab_settings", lang), Icons.Outlined.Settings, 3)
         )
         items.forEach { item ->

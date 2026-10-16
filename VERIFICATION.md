@@ -1,22 +1,24 @@
-# Verification: Tvim 1.6
+# Verification: Tvim 1.7
 
-- Release build: passed.
-- 53 tests passed, 0 failures/errors. Robolectric Android API 28 and 33.
+- Release build passed.
+- 75 tests passed, 0 failures/errors. Robolectric Android API 28 and 33.
 - Android Lint: 0 errors.
-- APK signature and ZIP/16 KB alignment: verified.
-- Application ID: com.example.tvim. versionCode: 8. Android minimum: 7.0 (API 24).
-- Signing certificate SHA-256 matches the published Tvim 1.5 APK:
+- APK signature and ZIP/16 KB alignment verified.
+- Application ID com.example.tvim; versionCode 9; minimum Android 7.0 (API 24).
+- Signing certificate SHA-256 matches previously delivered versions:
   5d8528aa67bed1a67d050b6d607313583ef22cd59cdfdfd3b1fa8040a6f88893
-- APK SHA-256: 30214b6463571e2a59f42fd5cbf6d21502011a2f1eaf60264d27addfebab26d0
+- APK SHA-256: 4359db337b5c53c3b8ea7457ad420b855b3de662c2a7b251dd71e26f254ecb3d
 
-## Changes and verification
+## New regression coverage
 
-Restored the analog clock picker. Replaced the Sleep tab with a persistent countdown timer with presets, custom hours/minutes/seconds, pause, resume, reset and alarm-service playback on expiry. Existing wake-up alarms are retained in the Alarm tab.
+Stopwatch: app recreation, repeated start, pause/resume, reset, cumulative laps, lap limit and recovery after reboot. It runs from elapsed realtime while the app is closed; after device reboot it pauses at the last saved checkpoint.
 
-Timer tests cover duration bounds, duplicate starts, monotonic scheduling, recreation, pause/resume, stale deliveries, reboot restoration, completed timer recovery, denied exact-alarm permission, expiry/dismissal and preservation of existing alarms.
+Sound library: private copy survives original deletion; the same saved sound is reused by multiple alarms; duplicate contents are deduplicated; validation failure does not save an entry or leave temporary files; old alarm URI entries migrate into a shared registry; invalid IDs cannot escape private storage. Playback test verifies the saved private file is actually selected without built-in fallback.
 
-Vibration now explicitly uses alarm attributes on supported Android versions. Tests verify alarm usage, repeating playback, cancellation, finite previews and devices without a vibrator. The vibration picker provides pattern previews and a test button.
+The previous timer, alarm scheduling, playback, vibration and typing tests also pass.
 
-All previous alarm, audio and typing tests pass. Existing offline Russian/English typing phrases are retained.
+All ten WAV loops were checked for distinct sample hashes, valid 22,050 Hz mono 16-bit PCM, eight-second duration, nonzero RMS, no clipped samples and zero-valued start/end boundaries. These are original synthesized sounds, not recordings.
 
-No physical phone or emulator visual/hardware test was performed. Device vibration settings, Do Not Disturb and vendor background restrictions can still affect delivery. No release-signing private key is included; the APK preserves the same local debug certificate as the previous delivered versions.
+## Limits
+
+No physical-device listening, vibration or rendered UI test was performed. Old content-URI imports remain dependent on access to their original files; reimporting creates a durable private copy. New imports are limited to 50 MB and validated before they are listed. The same local debug signing key is retained, allowing an update over the supplied 1.6 APK without removing app data.

@@ -1,4 +1,4 @@
-# Tvim 1.6
+# Tvim 1.7
 
 Aplicație Android pentru alarme, cu interfața existentă în rusă și engleză. Necesită Android 7.0 sau mai nou.
 
@@ -8,9 +8,9 @@ Aplicație Android pentru alarme, cu interfața existentă în rusă și englez�
 2. Permite notificările. Dacă pe pagina principală apare o avertizare, apasă pe ea pentru a permite alarmele exacte sau afișarea peste ecranul blocat.
 3. Verifică volumul de sistem pentru alarme, apoi creează o alarmă.
 4. Fără zile selectate, alarma sună o singură dată și se dezactivează. Cu zile selectate, se repetă în acele zile.
-5. În selectorul de melodii poți asculta șase sunete incluse sau importa un fișier audio, apoi apăsa „Salvează”.
+5. În selectorul de melodii poți asculta zece sunete incluse sau importa un fișier audio, apoi apăsa „Salvează”.
 6. „Timer” înlocuiește „Somn”: setează ore, minute și secunde, pornește, pune pauză, continuă sau resetează. La final sună alarma. Alarmele de trezire existente rămân în pagina principală.
-7. „Analiză” afișează istoricul ultimelor 100 de alarme oprite sau ratate.
+7. „Stopwatch” măsoară timpul și turele. Istoricul ultimelor 100 de alarme se află în Setări.
 
 Sunetul folosește canalul de alarmă al telefonului și continuă când închizi ecranul aplicației. Volumul ales în aplicație se aplică în limitele volumului de sistem. Vibrația și creșterea treptată a volumului respectă setările fiecărei alarme. Dacă un fișier importat nu mai este disponibil, alarma folosește sunetul inclus „Morning Light”.
 
@@ -64,14 +64,23 @@ Arhiva cărții și textul integral nu sunt incluse în proiect sau APK.
 
 Interfața folosește conceptul din design/tvim-ui-concept-v1.png: negru, carduri rotunjite, accent roșu, timp digital compact, selecție de sunete și misiuni, progres circular și istoric cu date reale.
 
-## Download Tvim 1.6
+## Download Tvim 1.7
 
-[Download Tvim 1.6 APK](https://github.com/CERATD/tvim/raw/refs/heads/master/downloads/Tvim-1.6.apk)
+[Download Tvim 1.7 APK](https://github.com/CERATD/tvim/raw/refs/heads/master/downloads/Tvim-1.7.apk)
 
-[Release notes](RELEASE-1.6.md)
+[Release notes](RELEASE-1.7.md)
 
 Android 7.0 or newer. This APK uses the same local debug signing key as the previously delivered 1.4 and 1.4.1 builds. See VERIFICATION.md for tests and limitations.
 
 ## Update 1.6
 
 Analog clock selection is restored. The timer replaces Sleep. Vibration uses alarm attributes and includes a test button. Install over version 1.5 without uninstalling; the application ID and signing certificate match.
+
+
+## Update 1.7
+
+Stopwatch replaces Analysis; history is available in Settings. Timing survives app recreation and continues while the app is closed. After a device reboot it pauses at the last persisted checkpoint.
+
+Imported audio is shared across all alarms. New imports are validated and copied into private app storage (50 MB maximum); identical content is stored only once. Existing content-URI alarm sounds are registered in the library without changing the alarms. Legacy URI entries still depend on the original file permission; reimport them to create a durable private copy.
+
+The ten built-in loops are deterministic original synthesis with different rhythms and timbres. Run tools/generate_sounds.py to reproduce them.
