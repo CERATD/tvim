@@ -1,4 +1,4 @@
-# Tvim 1.4.1
+# Tvim 1.6
 
 Aplicație Android pentru alarme, cu interfața existentă în rusă și engleză. Necesită Android 7.0 sau mai nou.
 
@@ -9,7 +9,7 @@ Aplicație Android pentru alarme, cu interfața existentă în rusă și englez�
 3. Verifică volumul de sistem pentru alarme, apoi creează o alarmă.
 4. Fără zile selectate, alarma sună o singură dată și se dezactivează. Cu zile selectate, se repetă în acele zile.
 5. În selectorul de melodii poți asculta șase sunete incluse sau importa un fișier audio, apoi apăsa „Salvează”.
-6. „Somn” creează o alarmă normală pentru trezire și calculează ora de culcare din durata aleasă. Alarma se poate modifica sau șterge din pagina principală.
+6. „Timer” înlocuiește „Somn”: setează ore, minute și secunde, pornește, pune pauză, continuă sau resetează. La final sună alarma. Alarmele de trezire existente rămân în pagina principală.
 7. „Analiză” afișează istoricul ultimelor 100 de alarme oprite sau ratate.
 
 Sunetul folosește canalul de alarmă al telefonului și continuă când închizi ecranul aplicației. Volumul ales în aplicație se aplică în limitele volumului de sistem. Vibrația și creșterea treptată a volumului respectă setările fiecărei alarme. Dacă un fișier importat nu mai este disponibil, alarma folosește sunetul inclus „Morning Light”.
@@ -47,7 +47,7 @@ Testele de componente Android folosesc Robolectric, pe API 28 și 33. Acestea ve
 
 Nu a fost conectat un telefon pentru verificarea hardware. Înainte de folosirea zilnică, verifică o alarmă cu ecranul blocat, una după repornire și una cu aplicația scoasă din lista de aplicații recente. După repornire, deblochează telefonul o dată. Oprirea forțată din setările Android suspendă alarmele până când aplicația este deschisă din nou; unele telefoane aplică restricții suplimentare de baterie. Modul „Nu deranja” trebuie să permită alarmele.
 
-Istoricul arată răspunsul la alarmă și nu măsoară somnul. Programul de somn nu activează modul de sistem „Nu deranja”.
+Istoricul arată răspunsul la alarmă și nu măsoară somnul.
 
 
 ## Misiunea de tastare — 1.4.1
@@ -64,8 +64,14 @@ Arhiva cărții și textul integral nu sunt incluse în proiect sau APK.
 
 Interfața folosește conceptul din design/tvim-ui-concept-v1.png: negru, carduri rotunjite, accent roșu, timp digital compact, selecție de sunete și misiuni, progres circular și istoric cu date reale.
 
-## Download Tvim 1.5
+## Download Tvim 1.6
 
-[Download the verified Tvim 1.5 APK](https://github.com/CERATD/tvim/raw/refs/heads/master/downloads/Tvim-1.5.apk)
+[Download Tvim 1.6 APK](https://github.com/CERATD/tvim/raw/refs/heads/master/downloads/Tvim-1.6.apk)
+
+[Release notes](RELEASE-1.6.md)
 
 Android 7.0 or newer. This APK uses the same local debug signing key as the previously delivered 1.4 and 1.4.1 builds. See VERIFICATION.md for tests and limitations.
+
+## Update 1.6
+
+Analog clock selection is restored. The timer replaces Sleep. Vibration uses alarm attributes and includes a test button. Install over version 1.5 without uninstalling; the application ID and signing certificate match.

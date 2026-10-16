@@ -35,6 +35,7 @@
             </intent-filter>
         </receiver>
 
+        <receiver android:name=".TimerReceiver" android:exported="false" />
         <receiver android:name=".AlarmTriggerReceiver" android:exported="false" />
 
         <activity

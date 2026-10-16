@@ -74,7 +74,7 @@ fun TvimDashboard(
             when (selectedTab) {
                 0 -> MainAlarmScreen(alarms, onAlarmToggle, onAlarmEdit, lang)
                 1 -> HistoryScreen(lang)
-                2 -> SleepScreen(storage, lang)
+                2 -> TimerScreen(lang)
                 3 -> SettingsScreen(appSettings, onPrimaryColorChange, onLanguageChange, lang)
             }
         }
@@ -464,7 +464,7 @@ fun TvimBottomNavigation(selectedTab: Int, lang: String, onTabSelected: (Int) ->
         val items = listOf(
             Triple(Strings.get("tab_alarm", lang), Icons.Outlined.Alarm, 0),
             Triple(Strings.get("tab_analysis", lang), Icons.Outlined.BarChart, 1),
-            Triple(Strings.get("tab_sleep", lang), Icons.Outlined.Bedtime, 2),
+            Triple(Strings.get("tab_timer", lang), Icons.Outlined.Timer, 2),
             Triple(Strings.get("tab_settings", lang), Icons.Outlined.Settings, 3)
         )
         items.forEach { item ->

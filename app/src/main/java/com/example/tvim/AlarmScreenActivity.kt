@@ -66,7 +66,7 @@ class AlarmScreenActivity : ComponentActivity(), SensorEventListener {
 
         alarmId = getSharedPreferences("alarm_runtime", MODE_PRIVATE).getString("active", null)
         if (alarmId == null) { finish(); return }
-        val alarm = AlarmStorage(this).getAlarms().find { it.id == alarmId }
+        val alarm = CountdownTimer(this).alarm(alarmId) ?: AlarmStorage(this).getAlarms().find { it.id == alarmId }
         alarm?.let {
             missionType.value = it.missionType
             requiredShakes = it.difficulty.coerceIn(1, 5) * 10

@@ -1,24 +1,22 @@
-# Verificare Tvim 1.5
+# Verification: Tvim 1.6
 
-- Build release: reușit.
-- 32 teste trecute, 0 erori/eșecuri.
-- Android Lint: 0 erori.
-- Semnătură APK și aliniere ZIP/16 KB: verificate.
-- Pachet: com.example.tvim, versionCode 7, Android minim 7.0.
-- SHA-256 APK: e0d7ae55b53fdb13b1da89c178a4523f71d47b27e1229d803233eece21dcc93a
+- Release build: passed.
+- 53 tests passed, 0 failures/errors. Robolectric Android API 28 and 33.
+- Android Lint: 0 errors.
+- APK signature and ZIP/16 KB alignment: verified.
+- Application ID: com.example.tvim. versionCode: 8. Android minimum: 7.0 (API 24).
+- Signing certificate SHA-256 matches the published Tvim 1.5 APK:
+  5d8528aa67bed1a67d050b6d607313583ef22cd59cdfdfd3b1fa8040a6f88893
+- APK SHA-256: 30214b6463571e2a59f42fd5cbf6d21502011a2f1eaf60264d27addfebab26d0
 
-## Propoziții aleatorii
+## Changes and verification
 
-16 propoziții în rusă au fost verificate textual în FB2-ul furnizat de utilizator: George R. R. Martin, „Игра престолов. Часть I”. Traducerile englezești sunt proprii, realizate din textul rus. Nu a fost inclusă cartea integrală.
+Restored the analog clock picker. Replaced the Sleep tab with a persistent countdown timer with presets, custom hours/minutes/seconds, pause, resume, reset and alarm-service playback on expiry. Existing wake-up alarms are retained in the Alarm tab.
 
-Teste noi: selecție fără repetare consecutivă, traduceri disponibile pentru toate propozițiile, text identic după recrearea activității, păstrarea selecției între limbi, noua propoziție pentru o nouă alarmă, normalizarea majusculelor/punctuației/spațiilor, respingerea textului incomplet sau greșit.
+Timer tests cover duration bounds, duplicate starts, monotonic scheduling, recreation, pause/resume, stale deliveries, reboot restoration, completed timer recovery, denied exact-alarm permission, expiry/dismissal and preservation of existing alarms.
 
-Testele de componente rulează cu Robolectric pe API 28 și 33. Verificarea pe telefon fizic nu a fost efectuată.
+Vibration now explicitly uses alarm attributes on supported Android versions. Tests verify alarm usage, repeating playback, cancellation, finite previews and devices without a vibrator. The vibration picker provides pattern previews and a test button.
 
-APK-ul folosește aceeași cheie locală debug ca versiunea 1.4 livrată anterior. Pentru actualizare peste alte versiuni, semnătura instalării trebuie să coincidă.
+All previous alarm, audio and typing tests pass. Existing offline Russian/English typing phrases are retained.
 
-## UI 1.5
-
-Applied the generated black/red concept to time editing, sound selection, mission cards, vibration selection, gradual volume, alarm ringing, typing, shake progress, sleep and history. History charts use real recorded events. The home screen retains the next-alarm ring and four-tab navigation.
-
-Build, existing 32 regression tests and lint passed. Visual layout has not been verified on an emulator or physical device. The concept is adapted to native Android controls; it is not a pixel-identical image reproduction.
+No physical phone or emulator visual/hardware test was performed. Device vibration settings, Do Not Disturb and vendor background restrictions can still affect delivery. No release-signing private key is included; the APK preserves the same local debug certificate as the previous delivered versions.

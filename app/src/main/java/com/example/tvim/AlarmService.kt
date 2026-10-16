@@ -12,7 +12,7 @@ class AlarmService : Service() {
     private val queue = LinkedHashSet<String>()
     private val handler = Handler(Looper.getMainLooper())
     private lateinit var audio: AlarmAudio
-    private var vibrator: Vibrator? = null
+    private lateinit var vibration: AlarmVibration
     private var wakeLock: PowerManager.WakeLock? = null
     private var active: String? = null
     private var started = 0L
@@ -21,7 +21,7 @@ class AlarmService : Service() {
     override fun onCreate() {
         super.onCreate()
         audio = AlarmAudio(this)
-        vibrator = getSystemService(VIBRATOR_SERVICE) as Vibrator
+        vibration = AlarmVibration(this)
         if (Build.VERSION.SDK_INT >= 26) {
             getSystemService(NotificationManager::class.java).createNotificationChannel(
                 NotificationChannel(CHANNEL, "Tvim · Alarm", NotificationManager.IMPORTANCE_HIGH).apply {
@@ -48,12 +48,13 @@ class AlarmService : Service() {
             } else {
                 prefs.getString("active", null)?.let {
                     AlarmHistory(this).record(it, savedStart, System.currentTimeMillis(), "missed")
+                    CountdownTimer(this).finish(it)
                 }
                 prefs.edit().clear().apply()
             }
         }
         val id = intent?.getStringExtra("ALARM_ID")
-        if (id != null && AlarmStorage(this).getAlarms().any { it.id == id }) queue.add(id)
+        if (id != null && (AlarmStorage(this).getAlarms().any { it.id == id } || CountdownTimer(this).alarm(id) != null)) queue.add(id)
         if (active == null) playNext() else persistQueue()
         return if (active == null) START_NOT_STICKY else START_STICKY
     }
@@ -61,9 +62,9 @@ class AlarmService : Service() {
     private fun playNext() {
         handler.removeCallbacksAndMessages(null)
         audio.stop()
-        vibrator?.cancel()
+        vibration.stop()
         active = queue.firstOrNull()
-        val alarm = AlarmStorage(this).getAlarms().find { it.id == active }
+        val alarm = CountdownTimer(this).alarm(active) ?: AlarmStorage(this).getAlarms().find { it.id == active }
         if (alarm == null) {
             active?.let { queue.remove(it) }
             if (queue.isNotEmpty()) { playNext(); return }
@@ -100,16 +101,7 @@ class AlarmService : Service() {
         wakeLock = (getSystemService(POWER_SERVICE) as PowerManager).newWakeLock(
             PowerManager.PARTIAL_WAKE_LOCK, "tvim:alarm").apply { acquire(16 * 60 * 1000L) }
         audio.start(alarm.ringtoneName, if (alarm.gradualWakeup > 0) 0.01f else alarm.volume)
-        if (alarm.isVibrationEnabled && alarm.vibrationPattern != "Off") {
-            val pattern = when (alarm.vibrationPattern) {
-                "Pulse" -> longArrayOf(0, 200, 200)
-                "Knock" -> longArrayOf(0, 100, 100, 100, 700)
-                "Melody" -> longArrayOf(0, 150, 150, 300, 150, 600, 500)
-                else -> longArrayOf(0, 500, 500)
-            }
-            if (Build.VERSION.SDK_INT >= 26) vibrator?.vibrate(VibrationEffect.createWaveform(pattern, 0))
-            else @Suppress("DEPRECATION") vibrator?.vibrate(pattern, 0)
-        }
+        if (alarm.isVibrationEnabled) vibration.start(alarm.vibrationPattern)
         if (alarm.gradualWakeup > 0) {
             val rampStart = SystemClock.elapsedRealtime() - (System.currentTimeMillis() - started).coerceAtLeast(0)
             val ramp = object : Runnable {
@@ -131,6 +123,7 @@ class AlarmService : Service() {
     private fun finishCurrent(result: String) {
         active?.let { id ->
             AlarmHistory(this).record(id, started, System.currentTimeMillis(), result)
+            CountdownTimer(this).finish(id)
             queue.remove(id)
         }
         playNext()
@@ -139,7 +132,7 @@ class AlarmService : Service() {
     override fun onDestroy() {
         handler.removeCallbacksAndMessages(null)
         audio.stop()
-        vibrator?.cancel()
+        vibration.stop()
         if (wakeLock?.isHeld == true) wakeLock?.release()
         if (queue.isEmpty()) prefs.edit().clear().apply()
         super.onDestroy()

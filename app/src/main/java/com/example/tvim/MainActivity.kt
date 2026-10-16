@@ -70,6 +70,7 @@ class MainActivity : ComponentActivity() {
                     onResult = { isGranted ->
                         if (isGranted) {
                             scheduler.scheduleAll()
+                            CountdownTimer(context).restore()
 
                         }
                     }
@@ -94,6 +95,7 @@ class MainActivity : ComponentActivity() {
                     val observer = androidx.lifecycle.LifecycleEventObserver { _, event ->
                         if (event == androidx.lifecycle.Lifecycle.Event.ON_RESUME) {
                             scheduler.scheduleAll()
+                            CountdownTimer(context).restore()
                             alarms = storage.getAlarms()
                         }
                     }
@@ -271,7 +273,7 @@ fun AlarmSettingsDialog(
                             modifier = Modifier.fillMaxWidth(),
                             horizontalAlignment = Alignment.CenterHorizontally
                         ) {
-                            TimeInput(
+                            TimePicker(
                                 state = timePickerState,
                                 colors = TimePickerDefaults.colors(
                                     clockDialColor = Color(0xFF1A1A1A),
@@ -486,18 +488,33 @@ fun LabelEditDialog(initialLabel: String, onDismiss: () -> Unit, onSave: (String
 
 @Composable
 fun VibrationPickerDialog(currentPattern: String, onDismiss: () -> Unit, onSelect: (String) -> Unit, lang: String) {
+    val context = LocalContext.current
+    val preview = remember { AlarmVibration(context) }
+    val lifecycle = androidx.lifecycle.compose.LocalLifecycleOwner.current.lifecycle
+    DisposableEffect(lifecycle) {
+        val observer = androidx.lifecycle.LifecycleEventObserver { _, event ->
+            if (event == androidx.lifecycle.Lifecycle.Event.ON_STOP) preview.stop()
+        }
+        lifecycle.addObserver(observer)
+        onDispose { lifecycle.removeObserver(observer); preview.stop() }
+    }
     val patterns = listOf("Standard" to "vibration_standard", "Pulse" to "vibration_pulse",
         "Knock" to "vibration_knock", "Melody" to "vibration_melody")
     var selected by remember { mutableStateOf(if (currentPattern == "Off") "Standard" else currentPattern) }
     var enabled by remember { mutableStateOf(currentPattern != "Off") }
     DesignSheet(Strings.get("vibration", lang), lang, onDismiss, { onSelect(if (enabled) selected else "Off") }) {
         SettingsRow(Icons.Default.Vibration, Strings.get("vibration", lang), content = {
-            Switch(enabled, { enabled = it })
+            Switch(enabled, { enabled = it; if (it) preview.start(selected, repeat = false) else preview.stop() })
         })
+        if (!preview.available()) Text(if (lang == "ru") "На этом устройстве нет вибромотора." else "This device has no vibrator.", color = GrayText)
+        OutlinedButton(onClick = { preview.start(selected, repeat = false) }, enabled = enabled && preview.available(),
+            modifier = Modifier.fillMaxWidth()) {
+            Text(if (lang == "ru") "Проверить вибрацию" else "Test vibration")
+        }
         patterns.chunked(2).forEach { row ->
             Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                 row.forEachIndexed { index, (pattern, key) ->
-                    Card(onClick = { selected = pattern; enabled = true }, modifier = Modifier.weight(1f),
+                    Card(onClick = { selected = pattern; enabled = true; preview.start(pattern, repeat = false) }, modifier = Modifier.weight(1f),
                         border = BorderStroke(1.dp, if (enabled && selected == pattern) MaterialTheme.colorScheme.primary else Color.Transparent),
                         colors = CardDefaults.cardColors(containerColor = Color(0xFF1B1B1B)),
                         shape = RoundedCornerShape(20.dp)) {
@@ -506,7 +523,7 @@ fun VibrationPickerDialog(currentPattern: String, onDismiss: () -> Unit, onSelec
                             Icon(Icons.Default.Vibration, null, Modifier.size(32.dp),
                                 tint = if (enabled && selected == pattern) MaterialTheme.colorScheme.primary else Color.Gray)
                             Text(Strings.get(key, lang), textAlign = TextAlign.Center)
-                            RadioButton(enabled && selected == pattern, { selected = pattern; enabled = true })
+                            RadioButton(enabled && selected == pattern, { selected = pattern; enabled = true; preview.start(pattern, repeat = false) })
                         }
                     }
                 }

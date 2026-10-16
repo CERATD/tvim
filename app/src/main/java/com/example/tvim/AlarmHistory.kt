@@ -12,7 +12,7 @@ class AlarmHistory(private val context: Context) {
             ?: emptyList()
     }.getOrDefault(emptyList())
     fun record(id: String, started: Long, ended: Long, result: String) {
-        val label = AlarmStorage(context).getAlarms().find { it.id == id }?.label ?: "Tvim"
+        val label = CountdownTimer(context).alarm(id)?.label ?: AlarmStorage(context).getAlarms().find { it.id == id }?.label ?: "Tvim"
         prefs.edit().putString("events", Gson().toJson((listOf(AlarmEvent(label, started, ended, result)) + events()).take(100))).apply()
     }
 }
