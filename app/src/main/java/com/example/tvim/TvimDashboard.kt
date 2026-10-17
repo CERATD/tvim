@@ -30,9 +30,6 @@ import com.example.tvim.ui.theme.DarkGray
 import com.example.tvim.ui.theme.GrayText
 import com.example.tvim.ui.theme.RedAccent
 import com.example.tvim.ui.theme.NothingDisplayFont
-import androidx.compose.foundation.lazy.grid.items
-import androidx.compose.foundation.lazy.grid.GridCells
-import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.graphics.lerp
 import kotlinx.coroutines.launch
@@ -321,13 +318,13 @@ fun SettingsScreen(appSettings: AppSettings, onColorChange: (Color) -> Unit, onL
 
 @Composable
 fun ColorPickerDialog(currentColor: Color, onDismiss: () -> Unit, onSelect: (Color) -> Unit, lang: String) {
-    var hue by remember { mutableFloatStateOf(0f) }
-    
     val presetColors = listOf(
-        Color.Red, Color(0xFFFF5722), Color(0xFFFF9800), Color(0xFFFFC107),
-        Color.Green, Color(0xFF4CAF50), Color(0xFF00BCD4), Color.Cyan,
-        Color.Blue, Color(0xFF2196F3), Color(0xFF673AB7), Color.Magenta,
-        Color(0xFFE91E63), Color.White, Color.Gray, Color.DarkGray
+        Color(0xFFFF2433), // Red
+        Color(0xFF40E0D0), // Turquoise
+        Color(0xFF000000), // Black
+        Color(0xFFFFFFFF), // White
+        Color(0xFFFF4F9A), // Pink
+        Color(0xFF35C759)  // Green
     )
 
     AlertDialog(
@@ -335,60 +332,32 @@ fun ColorPickerDialog(currentColor: Color, onDismiss: () -> Unit, onSelect: (Col
         containerColor = Color(0xFF1A1A1A),
         title = { Text(Strings.get("theme_color", lang), color = Color.White) },
         text = {
-            Column {
-                Text(Strings.get("palette", lang), color = GrayText, fontSize = 10.sp, modifier = Modifier.padding(bottom = 12.dp))
-                LazyVerticalGrid(
-                    columns = GridCells.Fixed(4),
-                    modifier = Modifier.height(200.dp),
-                    verticalArrangement = Arrangement.spacedBy(12.dp),
-                    horizontalArrangement = Arrangement.spacedBy(12.dp)
-                ) {
-                    items(presetColors) { color ->
-                        Box(
-                            modifier = Modifier
-                                .size(48.dp)
-                                .clip(CircleShape)
-                                .background(color)
-                                .border(
-                                    width = if (currentColor == color) 3.dp else 1.dp,
-                                    color = if (currentColor == color) Color.White else Color.Transparent,
-                                    shape = CircleShape
-                                )
-                                .clickable { onSelect(color) }
-                        )
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(12.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                presetColors.forEach { color ->
+                    val selected = currentColor.toArgb() == color.toArgb()
+                    Box(
+                        contentAlignment = Alignment.Center,
+                        modifier = Modifier
+                            .weight(1f)
+                            .aspectRatio(1f)
+                            .clip(CircleShape)
+                            .background(color)
+                            .border(
+                                width = if (selected) 3.dp else 1.dp,
+                                color = if (selected) Color.White else Color(0xFF555555),
+                                shape = CircleShape
+                            )
+                            .clickable { onSelect(color) }
+                    ) {
+                        if (selected) {
+                            TvimIcon(Icons.Default.Check, null, tint = if (color == Color.White || color == Color(0xFF40E0D0) || color == Color(0xFFFF4F9A) || color == Color(0xFF35C759)) Color.Black else Color.White, modifier = Modifier.size(18.dp))
+                        }
                     }
                 }
-                
-                Spacer(modifier = Modifier.height(24.dp))
-                Text(Strings.get("gradient", lang), color = GrayText, fontSize = 10.sp, modifier = Modifier.padding(bottom = 8.dp))
-                
-                Box(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(8.dp)
-                        .clip(RoundedCornerShape(4.dp))
-                        .background(
-                            androidx.compose.ui.graphics.Brush.horizontalGradient(
-                                colors = listOf(
-                                    Color.Red, Color.Yellow, Color.Green, Color.Cyan, Color.Blue, Color.Magenta, Color.Red
-                                )
-                            )
-                        )
-                )
-                
-                Slider(
-                    value = hue,
-                    onValueChange = { 
-                        hue = it
-                        onSelect(Color.hsv(hue, 0.8f, 1f))
-                    },
-                    valueRange = 0f..360f,
-                    colors = SliderDefaults.colors(
-                        thumbColor = Color.hsv(hue, 0.8f, 1f),
-                        activeTrackColor = Color.Transparent,
-                        inactiveTrackColor = Color.Transparent
-                    )
-                )
             }
         },
         confirmButton = {

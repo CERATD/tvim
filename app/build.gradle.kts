@@ -11,8 +11,8 @@ android {
         applicationId = "com.example.tvim"
         minSdk = 24
         targetSdk = 36
-        versionCode = 13
-        versionName = "1.9.2"
+        versionCode = 14
+        versionName = "1.9.3"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }

@@ -9,6 +9,7 @@ import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.runtime.SideEffect
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.toArgb
+import androidx.compose.ui.graphics.luminance
 import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.Font
@@ -44,10 +45,11 @@ fun TvimTheme(
     nothingDesign: Boolean = false,
     content: @Composable () -> Unit
 ) {
-    val activeColor = if (nothingDesign) Color(0xFFFF2433) else primaryColor
+    val activeColor = primaryColor
+    val onActiveColor = if (primaryColor.luminance() > 0.5f) Color.Black else Color.White
     val colorScheme = darkColorScheme(
         primary = activeColor,
-        onPrimary = Color.Black,
+        onPrimary = onActiveColor,
         background = PureBlack,
         onBackground = Color.White,
         surface = DarkGray,
@@ -55,7 +57,7 @@ fun TvimTheme(
         surfaceVariant = Color(0xFF242424),
         surfaceContainerHighest = DarkGray,
         secondary = DarkGray,
-        onSecondary = activeColor
+        onSecondary = onActiveColor
     )
 
     val view = LocalView.current
