@@ -15,6 +15,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.core.app.NotificationManagerCompat
+import com.example.tvim.ui.theme.DarkGray
+import com.example.tvim.ui.theme.GrayText
 
 @Composable
 fun AlarmReadiness(lang: String) {
@@ -62,23 +64,27 @@ fun openSystemSettings(context: Context, intent: Intent) {
 fun HistoryScreen(lang: String) {
     val context = LocalContext.current
     val events = remember { AlarmHistory(context).events() }
+    val historyCardColors = CardDefaults.cardColors(containerColor = DarkGray, contentColor = androidx.compose.ui.graphics.Color.White)
+    val flatCardElevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
     Column(Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(20.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
-        Text(if (lang == "ru") "История пробуждений" else "Wake-up history", style = MaterialTheme.typography.headlineSmall)
+        Text(if (lang == "ru") "История пробуждений" else "Wake-up history", color = androidx.compose.ui.graphics.Color.White,
+            style = MaterialTheme.typography.headlineSmall.copy(shadow = null))
         Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
             listOf("dismissed" to if (lang == "ru") "Выключено" else "Dismissed",
                 "missed" to if (lang == "ru") "Пропущено" else "Missed").forEach { (result, label) ->
-                Card(Modifier.weight(1f)) {
+                Card(Modifier.weight(1f), colors = historyCardColors, elevation = flatCardElevation) {
                     Column(Modifier.padding(20.dp)) {
-                        Text(events.count { it.result == result }.toString(), style = MaterialTheme.typography.displaySmall,
-                            color = MaterialTheme.colorScheme.primary)
-                        Text(label)
+                        Text(events.count { it.result == result }.toString(),
+                            color = MaterialTheme.colorScheme.primary, style = MaterialTheme.typography.displaySmall.copy(shadow = null))
+                        Text(label, color = androidx.compose.ui.graphics.Color.White, style = MaterialTheme.typography.bodyMedium.copy(shadow = null))
                     }
                 }
             }
         }
-        Card(Modifier.fillMaxWidth()) {
+        Card(Modifier.fillMaxWidth(), colors = historyCardColors, elevation = flatCardElevation) {
             Column(Modifier.padding(20.dp), verticalArrangement = Arrangement.spacedBy(16.dp)) {
-                Text(if (lang == "ru") "Последние 7 дней" else "Last 7 days")
+                Text(if (lang == "ru") "Последние 7 дней" else "Last 7 days", color = androidx.compose.ui.graphics.Color.White,
+                    style = MaterialTheme.typography.bodyLarge.copy(shadow = null))
                 val today = java.util.Calendar.getInstance().apply {
                     set(java.util.Calendar.HOUR_OF_DAY, 0); set(java.util.Calendar.MINUTE, 0)
                     set(java.util.Calendar.SECOND, 0); set(java.util.Calendar.MILLISECOND, 0)
@@ -93,28 +99,32 @@ fun HistoryScreen(lang: String) {
                     verticalAlignment = androidx.compose.ui.Alignment.Bottom) {
                     counts.forEachIndexed { index, count ->
                         Column(Modifier.weight(1f), horizontalAlignment = androidx.compose.ui.Alignment.CenterHorizontally) {
-                            Text(count.toString(), style = MaterialTheme.typography.labelSmall)
+                            Text(count.toString(), color = androidx.compose.ui.graphics.Color.White,
+                                style = MaterialTheme.typography.labelSmall.copy(shadow = null))
                             Spacer(Modifier.height(8.dp))
                             Surface(Modifier.fillMaxWidth().height((4 + 76 * count / (counts.maxOrNull() ?: 1).coerceAtLeast(1)).dp),
                                 color = if (count == 0) MaterialTheme.colorScheme.surfaceVariant else MaterialTheme.colorScheme.primary,
                                 shape = androidx.compose.foundation.shape.RoundedCornerShape(4.dp)) {}
                             val day = (today.clone() as java.util.Calendar).apply { add(java.util.Calendar.DAY_OF_YEAR, index - 6) }
                             Text(java.text.SimpleDateFormat("dd.MM", java.util.Locale.getDefault()).format(day.time),
-                                style = MaterialTheme.typography.labelSmall)
+                                color = GrayText, style = MaterialTheme.typography.labelSmall.copy(shadow = null))
                         }
                     }
                 }
             }
         }
-        if (events.isEmpty()) Text(if (lang == "ru") "Здесь появятся ваши срабатывания будильника." else "Your alarm events will appear here.")
+        if (events.isEmpty()) Text(if (lang == "ru") "Здесь появятся ваши срабатывания будильника." else "Your alarm events will appear here.",
+            color = GrayText, style = MaterialTheme.typography.bodyMedium.copy(shadow = null))
         events.forEach { event ->
-            Card(Modifier.fillMaxWidth()) {
+            Card(Modifier.fillMaxWidth(), colors = historyCardColors, elevation = flatCardElevation) {
                 Column(Modifier.padding(16.dp)) {
-                    Text(event.label)
-                    Text(java.text.DateFormat.getDateTimeInstance(java.text.DateFormat.SHORT, java.text.DateFormat.SHORT).format(java.util.Date(event.started)))
+                    Text(event.label, color = androidx.compose.ui.graphics.Color.White, style = MaterialTheme.typography.bodyLarge.copy(shadow = null))
+                    Text(java.text.DateFormat.getDateTimeInstance(java.text.DateFormat.SHORT, java.text.DateFormat.SHORT).format(java.util.Date(event.started)),
+                        color = GrayText, style = MaterialTheme.typography.bodyMedium.copy(shadow = null))
                     Text(if (event.result == "dismissed") {
                         if (lang == "ru") "Выключен через ${(event.ended-event.started)/1000} с" else "Dismissed after ${(event.ended-event.started)/1000}s"
-                    } else if (lang == "ru") "Пропущен" else "Missed")
+                    } else if (lang == "ru") "Пропущен" else "Missed", color = androidx.compose.ui.graphics.Color.White,
+                        style = MaterialTheme.typography.bodyMedium.copy(shadow = null))
                 }
             }
         }
