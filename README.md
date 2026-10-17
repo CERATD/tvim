@@ -1,4 +1,4 @@
-# Tvim 1.9.5
+# Tvim 1.9.6
 
 Aplicație Android pentru alarme, cu interfața existentă în rusă și engleză. Necesită Android 7.0 sau mai nou.
 
@@ -64,11 +64,11 @@ Arhiva cărții și textul integral nu sunt incluse în proiect sau APK.
 
 Interfața folosește conceptul din design/tvim-ui-concept-v1.png: negru, carduri rotunjite, accent roșu, timp digital compact, selecție de sunete și misiuni, progres circular și istoric cu date reale.
 
-## Download Tvim 1.9.5
+## Download Tvim 1.9.6
 
-[Download Tvim 1.9.5 APK](https://github.com/CERATD/tvim/releases/download/v1.9.5/Tvim-1.9.5.apk)
+[Download Tvim 1.9.6 APK](https://github.com/CERATD/tvim/releases/download/v1.9.6/Tvim-1.9.6.apk)
 
-[Release notes](RELEASE-1.9.5.md)
+[Release notes](RELEASE-1.9.6.md)
 
 Android 7.0 or newer. This APK uses the same local debug signing key as the previously delivered builds. See VERIFICATION.md for tests and limitations.
 
@@ -117,3 +117,7 @@ The two dots in the digital alarm time separator are centered vertically in Noth
 ## Update 1.9.5
 
 Wake-up history text now has clear contrast in both themes, chart bars keep the selected accent, and history cards no longer cast a shadow.
+
+## Update 1.9.6
+
+Removed black from the theme color choices. Existing black selections are changed to red when the app opens.

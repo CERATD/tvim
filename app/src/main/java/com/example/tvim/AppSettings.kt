@@ -16,7 +16,15 @@ class AppSettings(context: Context) {
         set(value) = prefs.edit().putBoolean("alarm_vibration", value).apply()
 
     var primaryColor: Color
-        get() = Color(prefs.getInt("primary_color", Color(0xFFFF0000).toArgb()))
+        get() {
+            val storedColor = Color(prefs.getInt("primary_color", Color(0xFFFF0000).toArgb()))
+            if (storedColor == Color.Black) {
+                val fallbackColor = Color(0xFFFF2433)
+                prefs.edit().putInt("primary_color", fallbackColor.toArgb()).apply()
+                return fallbackColor
+            }
+            return storedColor
+        }
         set(value) = prefs.edit().putInt("primary_color", value.toArgb()).apply()
 
     var language: String

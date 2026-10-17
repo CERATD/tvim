@@ -365,7 +365,6 @@ fun ColorPickerDialog(currentColor: Color, onDismiss: () -> Unit, onSelect: (Col
     val presetColors = listOf(
         Color(0xFFFF2433), // Red
         Color(0xFF40E0D0), // Turquoise
-        Color(0xFF000000), // Black
         Color(0xFFFFFFFF), // White
         Color(0xFFFF4F9A), // Pink
         Color(0xFF35C759)  // Green
