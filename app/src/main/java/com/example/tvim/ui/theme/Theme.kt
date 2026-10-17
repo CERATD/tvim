@@ -18,23 +18,24 @@ import com.example.tvim.R
 
 val LocalNothingDesign = staticCompositionLocalOf { false }
 val NothingDisplayFont = FontFamily(Font(R.font.nothing_doto))
+private val NothingTextFont = FontFamily(Font(R.font.matrix_nothing))
 
 private val NothingTypography = Typography.copy(
-    displayLarge = Typography.displayLarge.copy(fontFamily = NothingDisplayFont, letterSpacing = 1.5.sp),
-    displayMedium = Typography.displayMedium.copy(fontFamily = NothingDisplayFont, letterSpacing = 1.5.sp),
-    displaySmall = Typography.displaySmall.copy(fontFamily = NothingDisplayFont, letterSpacing = 1.2.sp),
-    headlineLarge = Typography.headlineLarge.copy(fontFamily = NothingDisplayFont, letterSpacing = 1.sp),
-    headlineMedium = Typography.headlineMedium.copy(fontFamily = NothingDisplayFont, letterSpacing = 0.8.sp),
-    headlineSmall = Typography.headlineSmall.copy(fontFamily = FontFamily.SansSerif, letterSpacing = 0.5.sp),
-    titleLarge = Typography.titleLarge.copy(fontFamily = FontFamily.SansSerif, letterSpacing = 0.45.sp),
-    titleMedium = Typography.titleMedium.copy(fontFamily = FontFamily.SansSerif, letterSpacing = 0.4.sp),
-    titleSmall = Typography.titleSmall.copy(fontFamily = FontFamily.SansSerif, letterSpacing = 0.35.sp),
-    bodyLarge = Typography.bodyLarge.copy(fontFamily = FontFamily.SansSerif, letterSpacing = 0.35.sp),
-    bodyMedium = Typography.bodyMedium.copy(fontFamily = FontFamily.SansSerif, letterSpacing = 0.3.sp),
-    bodySmall = Typography.bodySmall.copy(fontFamily = FontFamily.SansSerif, letterSpacing = 0.25.sp),
-    labelLarge = Typography.labelLarge.copy(fontFamily = FontFamily.SansSerif, letterSpacing = 0.45.sp),
-    labelMedium = Typography.labelMedium.copy(fontFamily = FontFamily.SansSerif, letterSpacing = 0.4.sp),
-    labelSmall = Typography.labelSmall.copy(fontFamily = FontFamily.SansSerif, letterSpacing = 0.35.sp)
+    displayLarge = Typography.displayLarge.copy(fontFamily = NothingTextFont, letterSpacing = 1.2.sp),
+    displayMedium = Typography.displayMedium.copy(fontFamily = NothingTextFont, letterSpacing = 1.2.sp),
+    displaySmall = Typography.displaySmall.copy(fontFamily = NothingTextFont, letterSpacing = 1.sp),
+    headlineLarge = Typography.headlineLarge.copy(fontFamily = NothingTextFont, letterSpacing = 0.8.sp),
+    headlineMedium = Typography.headlineMedium.copy(fontFamily = NothingTextFont, letterSpacing = 0.7.sp),
+    headlineSmall = Typography.headlineSmall.copy(fontFamily = NothingTextFont, letterSpacing = 0.5.sp),
+    titleLarge = Typography.titleLarge.copy(fontFamily = NothingTextFont, letterSpacing = 0.45.sp),
+    titleMedium = Typography.titleMedium.copy(fontFamily = NothingTextFont, letterSpacing = 0.4.sp),
+    titleSmall = Typography.titleSmall.copy(fontFamily = NothingTextFont, letterSpacing = 0.35.sp),
+    bodyLarge = Typography.bodyLarge.copy(fontFamily = NothingTextFont, letterSpacing = 0.35.sp),
+    bodyMedium = Typography.bodyMedium.copy(fontFamily = NothingTextFont, letterSpacing = 0.3.sp),
+    bodySmall = Typography.bodySmall.copy(fontFamily = NothingTextFont, letterSpacing = 0.25.sp),
+    labelLarge = Typography.labelLarge.copy(fontFamily = NothingTextFont, letterSpacing = 0.45.sp),
+    labelMedium = Typography.labelMedium.copy(fontFamily = NothingTextFont, letterSpacing = 0.4.sp),
+    labelSmall = Typography.labelSmall.copy(fontFamily = NothingTextFont, letterSpacing = 0.35.sp)
 )
 
 @Composable
