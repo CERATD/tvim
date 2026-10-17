@@ -11,7 +11,6 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.width
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
@@ -33,6 +32,10 @@ import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.rememberTextMeasurer
+import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.unit.Constraints
 import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.Dp
@@ -65,6 +68,16 @@ fun TvimDigitalTime(
 
     val parts = text.split(':')
     val layoutSize = fontSize.value.dp
+    val textMeasurer = rememberTextMeasurer()
+    val density = LocalDensity.current
+    val digitCellWidth = with(density) {
+        textMeasurer.measure(
+            text = "0",
+            style = TextStyle(fontSize = fontSize, fontFamily = fontFamily,
+                fontWeight = fontWeight ?: FontWeight.Normal, letterSpacing = letterSpacing),
+            constraints = Constraints()
+        ).size.width.toDp()
+    }
     Row(
         modifier = modifier.clearAndSetSemantics { contentDescription = text },
         verticalAlignment = Alignment.CenterVertically
@@ -74,8 +87,7 @@ fun TvimDigitalTime(
                 fontWeight = fontWeight, letterSpacing = letterSpacing)
             if (index < parts.lastIndex) {
                 Column(
-                    modifier = Modifier.width(layoutSize * 0.25f).height(layoutSize * 1.2f)
-                        .offset(x = -layoutSize * 0.1f),
+                    modifier = Modifier.width(digitCellWidth).height(layoutSize * 1.2f),
                     verticalArrangement = Arrangement.spacedBy(layoutSize * 0.1f, Alignment.CenterVertically),
                     horizontalAlignment = Alignment.CenterHorizontally
                 ) {
