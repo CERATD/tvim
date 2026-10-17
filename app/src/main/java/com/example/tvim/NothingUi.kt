@@ -1,12 +1,12 @@
 package com.example.tvim
 
 import androidx.compose.foundation.Canvas
-import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.sizeIn
-import androidx.compose.foundation.selection.toggleable
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material.icons.outlined.*
@@ -17,20 +17,12 @@ import androidx.compose.material3.SwitchDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.drawWithCache
 import androidx.compose.ui.draw.clip
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.padding
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.ImageBitmap
-import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.geometry.Offset
-import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.drawscope.DrawScope
-import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.Dp
 import com.example.tvim.ui.theme.LocalNothingDesign
@@ -40,7 +32,6 @@ import kotlin.math.cos
 import kotlin.math.max
 import kotlin.math.min
 import kotlin.math.sin
-import kotlin.math.sqrt
 
 fun DrawScope.drawNothingDots(color: Color, startAngle: Float, sweepAngle: Float, strokeWidth: Dp) {
     val radius = min(size.width, size.height) / 2f - strokeWidth.toPx() / 2f
@@ -138,47 +129,21 @@ private fun DotGlyph(name: String, description: String?, modifier: Modifier, tin
     }
 }
 
-/** Material switch in the classic theme; dotted, high-contrast pill in Nothing Design. */
+/** Keeps Android's familiar accessible switch in both visual modes. */
 @Composable
 fun TvimSwitch(checked: Boolean, onCheckedChange: (Boolean) -> Unit, modifier: Modifier = Modifier, enabled: Boolean = true) {
-    if (!LocalNothingDesign.current) {
-        Switch(
-            checked = checked,
-            onCheckedChange = onCheckedChange,
-            enabled = enabled,
-            modifier = modifier,
-            colors = SwitchDefaults.colors(
-                checkedThumbColor = Color.Black,
-                checkedTrackColor = androidx.compose.material3.MaterialTheme.colorScheme.primary,
-                uncheckedThumbColor = Color.White,
-                uncheckedTrackColor = Color.DarkGray
-            )
+    Switch(
+        checked = checked,
+        onCheckedChange = onCheckedChange,
+        enabled = enabled,
+        modifier = modifier,
+        colors = SwitchDefaults.colors(
+            checkedThumbColor = Color.Black,
+            checkedTrackColor = androidx.compose.material3.MaterialTheme.colorScheme.primary,
+            uncheckedThumbColor = Color.White,
+            uncheckedTrackColor = Color.DarkGray
         )
-    } else {
-        Box(
-            modifier = modifier.sizeIn(minWidth = 52.dp, minHeight = 48.dp)
-                .toggleable(checked, enabled = enabled, role = Role.Switch, onValueChange = onCheckedChange),
-            contentAlignment = Alignment.Center
-        ) {
-            Canvas(Modifier.size(52.dp, 30.dp)) {
-                val trackColor = if (checked) Color(0xFFFF2433) else Color(0xFF252525)
-                drawRoundRect(trackColor.copy(alpha = if (enabled) 0.75f else 0.35f), cornerRadius = androidx.compose.ui.geometry.CornerRadius(size.height / 2))
-                val radius = 1.4.dp.toPx()
-                val gap = 5.dp.toPx()
-                val inset = 3.dp.toPx()
-                var x = inset
-                while (x <= size.width - inset) {
-                    drawCircle(if (checked) Color.White.copy(alpha = 0.75f) else Color.LightGray, radius,
-                        Offset(x, inset))
-                    drawCircle(if (checked) Color.White.copy(alpha = 0.75f) else Color.LightGray, radius,
-                        Offset(x, size.height - inset))
-                    x += gap
-                }
-                drawCircle(if (checked) Color.Black else Color.White, 10.dp.toPx(),
-                    Offset(if (checked) size.width - 15.dp.toPx() else 15.dp.toPx(), size.height / 2))
-            }
-        }
-    }
+    )
 }
 
 @Composable
@@ -195,7 +160,7 @@ fun NothingDesignSetting(checked: Boolean, onCheckedChange: (Boolean) -> Unit, l
         androidx.compose.foundation.layout.Column(Modifier.weight(1f)) {
             androidx.compose.material3.Text("Nothing Design", color = Color.White)
             androidx.compose.material3.Text(
-                if (lang == "ru") "Точечные иконки и моноширинный стиль во всём приложении" else "Dotted icons and monospaced style across the app",
+                if (lang == "ru") "Точечные цифры и иконки, шрифт Nothing для текста" else "Dot-matrix digits and icons with Nothing-style text",
                 color = Color(0xFFAAAAAA), style = androidx.compose.material3.MaterialTheme.typography.bodySmall
             )
         }

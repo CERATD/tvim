@@ -18,6 +18,7 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import java.util.Locale
+import com.example.tvim.ui.theme.NothingDisplayFont
 
 @Composable
 fun TimerScreen(lang: String) {
@@ -56,7 +57,9 @@ fun TimerScreen(lang: String) {
             } else CircularProgressIndicator(progress = { progress }, modifier = Modifier.fillMaxSize(), strokeWidth = 8.dp, trackColor = Color(0xFF242424))
             Column(horizontalAlignment = Alignment.CenterHorizontally) {
                 Text(String.format(Locale.ROOT, "%02d:%02d:%02d", totalSeconds / 3600,
-                    totalSeconds % 3600 / 60, totalSeconds % 60), fontSize = 32.sp)
+                    totalSeconds % 3600 / 60, totalSeconds % 60), fontSize = 32.sp,
+                    fontFamily = if (nothingDesign) NothingDisplayFont else androidx.compose.ui.text.font.FontFamily.Default,
+                    letterSpacing = if (nothingDesign) 1.2.sp else 0.sp)
                 Spacer(Modifier.height(8.dp))
                 Text(when (state.status) {
                     "running" -> if (lang == "ru") "Обратный отсчёт" else "Counting down"
@@ -114,7 +117,12 @@ fun TimerScreen(lang: String) {
 
 @Composable
 private fun TimerNumber(value: String, label: String, invalid: Boolean, modifier: Modifier, onChange: (String) -> Unit) {
+    val nothingDesign = com.example.tvim.ui.theme.LocalNothingDesign.current
     OutlinedTextField(value, { if (it.length <= 2 && it.all { c -> c in '0'..'9' }) onChange(it) },
         modifier = modifier, label = { Text(label) }, singleLine = true, isError = invalid,
+        textStyle = MaterialTheme.typography.bodyLarge.copy(
+            fontFamily = if (nothingDesign) NothingDisplayFont else androidx.compose.ui.text.font.FontFamily.Default,
+            letterSpacing = if (nothingDesign) 0.8.sp else 0.sp
+        ),
         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number), shape = RoundedCornerShape(16.dp))
 }

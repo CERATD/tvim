@@ -64,11 +64,11 @@ Arhiva cărții și textul integral nu sunt incluse în proiect sau APK.
 
 Interfața folosește conceptul din design/tvim-ui-concept-v1.png: negru, carduri rotunjite, accent roșu, timp digital compact, selecție de sunete și misiuni, progres circular și istoric cu date reale.
 
-## Download Tvim 1.9
+## Download Tvim 1.9.1
 
-[Download Tvim 1.9 APK](https://github.com/CERATD/tvim/releases/download/v1.9/Tvim-1.9.apk)
+[Download Tvim 1.9.1 APK](https://github.com/CERATD/tvim/releases/download/v1.9.1/Tvim-1.9.1.apk)
 
-[Release notes](RELEASE-1.9.md)
+[Release notes](RELEASE-1.9.1.md)
 
 Android 7.0 or newer. This APK uses the same local debug signing key as the previously delivered builds. See VERIFICATION.md for tests and limitations.
 
@@ -96,4 +96,8 @@ Install 1.8 once using the APK link above, over the supplied 1.7 without uninsta
 
 ## Update 1.9
 
-Settings now include a persistent Nothing Design mode with dotted icons, switches and progress rings, monospaced typography and a fixed red accent. The classic appearance remains available. The launcher icon uses the red logo image supplied by the user. To install this update, use the 1.9 APK above over the previous version; future updates continue to download inside the app.
+Added the optional Nothing Design mode with dotted icons, switches and progress rings, monospaced typography and a red accent. The classic appearance remains available, and the launcher icon uses the supplied red logo. Install the latest APK linked above over the previous version; future updates continue to download inside the app.
+
+## Update 1.9.1
+
+Switches use Android's standard accessible control in both themes. Nothing Design now uses the open-source Doto dot-matrix typeface for clock and timer digits and a tracked sans-serif face for Russian and English text.

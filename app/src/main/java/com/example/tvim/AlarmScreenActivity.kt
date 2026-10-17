@@ -43,6 +43,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.tvim.ui.theme.RedAccent
 import com.example.tvim.ui.theme.TvimTheme
+import com.example.tvim.ui.theme.NothingDisplayFont
 import java.util.*
 import kotlin.math.sqrt
 import kotlin.random.Random
@@ -109,7 +110,9 @@ class AlarmScreenActivity : ComponentActivity(), SensorEventListener {
                                 text = String.format(Locale.getDefault(), "%02d:%02d", Calendar.getInstance().get(Calendar.HOUR_OF_DAY), Calendar.getInstance().get(Calendar.MINUTE)),
                                 color = Color.White,
                                 fontSize = if (missionType.value == MissionType.NONE) 64.sp else 32.sp,
-                                fontWeight = FontWeight.Light
+                                fontWeight = FontWeight.Light,
+                                fontFamily = if (appSettings.nothingDesign) NothingDisplayFont else androidx.compose.ui.text.font.FontFamily.Default,
+                                letterSpacing = if (appSettings.nothingDesign) 1.5.sp else 0.sp
                             )
                             Spacer(modifier = Modifier.height(32.dp))
                             Text(alarm?.label.orEmpty(), color = Color.Gray)
@@ -161,7 +164,8 @@ class AlarmScreenActivity : ComponentActivity(), SensorEventListener {
         var userAnswer by remember { mutableStateOf("") }
         
         Column(horizontalAlignment = Alignment.CenterHorizontally) {
-            Text("${num1} + ${num2} = ?", color = Color.White, fontSize = 32.sp, fontWeight = FontWeight.Bold)
+            Text("${num1} + ${num2} = ?", color = Color.White, fontSize = 32.sp, fontWeight = FontWeight.Bold,
+                fontFamily = if (appSettings.nothingDesign) NothingDisplayFont else androidx.compose.ui.text.font.FontFamily.Default)
             Spacer(modifier = Modifier.height(24.dp))
             Text(
                 text = if (userAnswer.isEmpty()) "_" else userAnswer,
@@ -216,7 +220,9 @@ class AlarmScreenActivity : ComponentActivity(), SensorEventListener {
                             text = btn,
                             color = if (btn == "OK") Color.Black else Color.White,
                             fontSize = 20.sp,
-                            fontWeight = FontWeight.Bold
+                            fontWeight = FontWeight.Bold,
+                            fontFamily = if (appSettings.nothingDesign) NothingDisplayFont else androidx.compose.ui.text.font.FontFamily.Default,
+                            letterSpacing = if (appSettings.nothingDesign) 0.8.sp else 0.sp
                         )
                     }
                 }
@@ -240,7 +246,9 @@ class AlarmScreenActivity : ComponentActivity(), SensorEventListener {
                 Column(horizontalAlignment = Alignment.CenterHorizontally) {
                     TvimIcon(Icons.Default.Vibration, null, Modifier.size(48.dp), tint = MaterialTheme.colorScheme.primary)
                     Spacer(Modifier.height(16.dp))
-                    Text("$count / $required", color = Color.White, fontSize = 36.sp)
+                    Text("$count / $required", color = Color.White, fontSize = 36.sp,
+                        fontFamily = if (appSettings.nothingDesign) NothingDisplayFont else androidx.compose.ui.text.font.FontFamily.Default,
+                        letterSpacing = if (appSettings.nothingDesign) 1.sp else 0.sp)
                 }
             }
         }

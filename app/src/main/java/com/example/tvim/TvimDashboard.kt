@@ -29,6 +29,7 @@ import androidx.compose.ui.unit.sp
 import com.example.tvim.ui.theme.DarkGray
 import com.example.tvim.ui.theme.GrayText
 import com.example.tvim.ui.theme.RedAccent
+import com.example.tvim.ui.theme.NothingDisplayFont
 import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
@@ -163,7 +164,9 @@ fun NextAlarmCard(alarm: Alarm, onToggle: (Alarm, Boolean) -> Unit, onEdit: (Ala
                     text = String.format(Locale.getDefault(), "%02d:%02d", alarm.hour, alarm.minute),
                     color = Color.White,
                     fontSize = 42.sp,
-                    fontWeight = FontWeight.Medium
+                    fontWeight = FontWeight.Medium,
+                    fontFamily = if (nothingDesign) NothingDisplayFont else androidx.compose.ui.text.font.FontFamily.Default,
+                    letterSpacing = if (nothingDesign) 1.4.sp else 0.sp
                 )
                 
                 Box(contentAlignment = Alignment.Center) {
@@ -200,6 +203,7 @@ fun NextAlarmCard(alarm: Alarm, onToggle: (Alarm, Boolean) -> Unit, onEdit: (Ala
 
 @Composable
 fun AlarmCard(alarm: Alarm, onToggle: (Boolean) -> Unit, onEdit: () -> Unit, lang: String) {
+    val nothingDesign = com.example.tvim.ui.theme.LocalNothingDesign.current
     Card(
         colors = CardDefaults.cardColors(containerColor = DarkGray),
         shape = RoundedCornerShape(20.dp),
@@ -215,7 +219,9 @@ fun AlarmCard(alarm: Alarm, onToggle: (Boolean) -> Unit, onEdit: () -> Unit, lan
                     text = String.format(Locale.getDefault(), "%02d:%02d", alarm.hour, alarm.minute),
                     color = if (alarm.isEnabled) Color.White else GrayText,
                     fontSize = 32.sp,
-                    fontWeight = FontWeight.Normal
+                    fontWeight = FontWeight.Normal,
+                    fontFamily = if (nothingDesign) NothingDisplayFont else androidx.compose.ui.text.font.FontFamily.Default,
+                    letterSpacing = if (nothingDesign) 1.2.sp else 0.sp
                 )
                 TvimSwitch(checked = alarm.isEnabled, onCheckedChange = onToggle)
             }

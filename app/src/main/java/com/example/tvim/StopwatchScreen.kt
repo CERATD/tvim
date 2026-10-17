@@ -14,6 +14,8 @@ import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import java.util.Locale
+import com.example.tvim.ui.theme.LocalNothingDesign
+import com.example.tvim.ui.theme.NothingDisplayFont
 
 internal fun stopwatchTime(milliseconds: Long): String {
     val hundredths = milliseconds / 10
@@ -23,6 +25,7 @@ internal fun stopwatchTime(milliseconds: Long): String {
 
 @Composable
 fun StopwatchScreen(lang: String) {
+    val nothingDesign = LocalNothingDesign.current
     val context = LocalContext.current
     val store = remember { StopwatchStore(context) }
     var state by remember { mutableStateOf(store.snapshot()) }
@@ -36,7 +39,8 @@ fun StopwatchScreen(lang: String) {
             Card(Modifier.fillMaxWidth(), shape = RoundedCornerShape(24.dp),
                 colors = CardDefaults.cardColors(containerColor = Color(0xFF1B1B1B))) {
                 Column(Modifier.fillMaxWidth().padding(vertical = 40.dp, horizontal = 8.dp), horizontalAlignment = Alignment.CenterHorizontally) {
-                    Text(stopwatchTime(state.elapsed), fontFamily = FontFamily.Monospace, fontSize = 28.sp)
+                    Text(stopwatchTime(state.elapsed), fontFamily = if (nothingDesign) NothingDisplayFont else FontFamily.Monospace,
+                        fontSize = 28.sp, letterSpacing = if (nothingDesign) 1.sp else 0.sp)
                     Spacer(Modifier.height(12.dp))
                     Text(if (state.running) (if (lang == "ru") "Идёт отсчёт" else "Running")
                         else if (lang == "ru") "На паузе" else "Paused", color = Color.Gray)
@@ -77,8 +81,10 @@ fun StopwatchScreen(lang: String) {
                     verticalAlignment = Alignment.CenterVertically) {
                     Text("#${index + 1}", color = color)
                     Column(horizontalAlignment = Alignment.End) {
-                        Text(stopwatchTime(split), color = color, fontFamily = FontFamily.Monospace)
-                        Text(stopwatchTime(total), color = Color.Gray, fontSize = 12.sp)
+                        Text(stopwatchTime(split), color = color, fontFamily = if (nothingDesign) NothingDisplayFont else FontFamily.Monospace,
+                            letterSpacing = if (nothingDesign) 0.7.sp else 0.sp)
+                        Text(stopwatchTime(total), color = Color.Gray, fontSize = 12.sp,
+                            fontFamily = if (nothingDesign) NothingDisplayFont else FontFamily.Monospace)
                     }
                 }
             }

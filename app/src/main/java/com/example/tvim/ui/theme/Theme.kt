@@ -11,27 +11,30 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.text.font.FontFamily
+import androidx.compose.ui.text.font.Font
 import androidx.compose.ui.unit.sp
 import androidx.core.view.WindowCompat
+import com.example.tvim.R
 
 val LocalNothingDesign = staticCompositionLocalOf { false }
+val NothingDisplayFont = FontFamily(Font(R.font.nothing_doto))
 
 private val NothingTypography = Typography.copy(
-    displayLarge = Typography.displayLarge.copy(fontFamily = FontFamily.Monospace, letterSpacing = 1.sp),
-    displayMedium = Typography.displayMedium.copy(fontFamily = FontFamily.Monospace, letterSpacing = 1.sp),
-    displaySmall = Typography.displaySmall.copy(fontFamily = FontFamily.Monospace, letterSpacing = 1.sp),
-    headlineLarge = Typography.headlineLarge.copy(fontFamily = FontFamily.Monospace, letterSpacing = 0.8.sp),
-    headlineMedium = Typography.headlineMedium.copy(fontFamily = FontFamily.Monospace, letterSpacing = 0.8.sp),
-    headlineSmall = Typography.headlineSmall.copy(fontFamily = FontFamily.Monospace, letterSpacing = 0.8.sp),
-    titleLarge = Typography.titleLarge.copy(fontFamily = FontFamily.Monospace, letterSpacing = 0.5.sp),
-    titleMedium = Typography.titleMedium.copy(fontFamily = FontFamily.Monospace, letterSpacing = 0.5.sp),
-    titleSmall = Typography.titleSmall.copy(fontFamily = FontFamily.Monospace, letterSpacing = 0.5.sp),
-    bodyLarge = Typography.bodyLarge.copy(fontFamily = FontFamily.Monospace, letterSpacing = 0.4.sp),
-    bodyMedium = Typography.bodyMedium.copy(fontFamily = FontFamily.Monospace, letterSpacing = 0.4.sp),
-    bodySmall = Typography.bodySmall.copy(fontFamily = FontFamily.Monospace, letterSpacing = 0.4.sp),
-    labelLarge = Typography.labelLarge.copy(fontFamily = FontFamily.Monospace, letterSpacing = 0.5.sp),
-    labelMedium = Typography.labelMedium.copy(fontFamily = FontFamily.Monospace, letterSpacing = 0.5.sp),
-    labelSmall = Typography.labelSmall.copy(fontFamily = FontFamily.Monospace, letterSpacing = 0.5.sp)
+    displayLarge = Typography.displayLarge.copy(fontFamily = NothingDisplayFont, letterSpacing = 1.5.sp),
+    displayMedium = Typography.displayMedium.copy(fontFamily = NothingDisplayFont, letterSpacing = 1.5.sp),
+    displaySmall = Typography.displaySmall.copy(fontFamily = NothingDisplayFont, letterSpacing = 1.2.sp),
+    headlineLarge = Typography.headlineLarge.copy(fontFamily = NothingDisplayFont, letterSpacing = 1.sp),
+    headlineMedium = Typography.headlineMedium.copy(fontFamily = NothingDisplayFont, letterSpacing = 0.8.sp),
+    headlineSmall = Typography.headlineSmall.copy(fontFamily = FontFamily.SansSerif, letterSpacing = 0.5.sp),
+    titleLarge = Typography.titleLarge.copy(fontFamily = FontFamily.SansSerif, letterSpacing = 0.45.sp),
+    titleMedium = Typography.titleMedium.copy(fontFamily = FontFamily.SansSerif, letterSpacing = 0.4.sp),
+    titleSmall = Typography.titleSmall.copy(fontFamily = FontFamily.SansSerif, letterSpacing = 0.35.sp),
+    bodyLarge = Typography.bodyLarge.copy(fontFamily = FontFamily.SansSerif, letterSpacing = 0.35.sp),
+    bodyMedium = Typography.bodyMedium.copy(fontFamily = FontFamily.SansSerif, letterSpacing = 0.3.sp),
+    bodySmall = Typography.bodySmall.copy(fontFamily = FontFamily.SansSerif, letterSpacing = 0.25.sp),
+    labelLarge = Typography.labelLarge.copy(fontFamily = FontFamily.SansSerif, letterSpacing = 0.45.sp),
+    labelMedium = Typography.labelMedium.copy(fontFamily = FontFamily.SansSerif, letterSpacing = 0.4.sp),
+    labelSmall = Typography.labelSmall.copy(fontFamily = FontFamily.SansSerif, letterSpacing = 0.35.sp)
 )
 
 @Composable
