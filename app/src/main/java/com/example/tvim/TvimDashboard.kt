@@ -50,8 +50,10 @@ fun TvimDashboard(
     storage: AlarmStorage,
     appSettings: AppSettings,
     lang: String,
+    nothingDesign: Boolean,
     onPrimaryColorChange: (Color) -> Unit,
     onLanguageChange: (String) -> Unit,
+    onNothingDesignChange: (Boolean) -> Unit,
     onAlarmToggle: (Alarm, Boolean) -> Unit,
     onAlarmDelete: (Alarm) -> Unit,
     onAlarmEdit: (Alarm) -> Unit,
@@ -75,7 +77,7 @@ fun TvimDashboard(
                 0 -> MainAlarmScreen(alarms, onAlarmToggle, onAlarmEdit, lang)
                 1 -> StopwatchScreen(lang)
                 2 -> TimerScreen(lang)
-                3 -> SettingsScreen(appSettings, onPrimaryColorChange, onLanguageChange, lang)
+                3 -> SettingsScreen(appSettings, onPrimaryColorChange, onLanguageChange, lang, nothingDesign, onNothingDesignChange)
             }
         }
     }
@@ -143,6 +145,7 @@ fun NextAlarmCard(alarm: Alarm, onToggle: (Alarm, Boolean) -> Unit, onEdit: (Ala
     val sweepAngle = 360f * progress
     
     val primaryColor = MaterialTheme.colorScheme.primary
+    val nothingDesign = com.example.tvim.ui.theme.LocalNothingDesign.current
     val dynamicCircleColor = lerp(primaryColor.copy(alpha = 0.3f), primaryColor, progress)
 
     Card(
@@ -165,25 +168,16 @@ fun NextAlarmCard(alarm: Alarm, onToggle: (Alarm, Boolean) -> Unit, onEdit: (Ala
                 
                 Box(contentAlignment = Alignment.Center) {
                     Canvas(modifier = Modifier.size(80.dp)) {
-                        drawCircle(color = Color.Black.copy(alpha = 0.3f), style = Stroke(width = 8.dp.toPx()))
-                        drawArc(
-                            color = dynamicCircleColor,
-                            startAngle = -90f,
-                            sweepAngle = sweepAngle,
-                            useCenter = false,
-                            style = Stroke(width = 8.dp.toPx())
-                        )
+                        if (nothingDesign) {
+                            drawNothingDots(Color(0xFF303030), 0f, 360f, 8.dp)
+                            drawNothingDots(dynamicCircleColor, -90f, sweepAngle, 8.dp)
+                        } else {
+                            drawCircle(color = Color.Black.copy(alpha = 0.3f), style = Stroke(width = 8.dp.toPx()))
+                            drawArc(color = dynamicCircleColor, startAngle = -90f, sweepAngle = sweepAngle,
+                                useCenter = false, style = Stroke(width = 8.dp.toPx()))
+                        }
                     }
-                    Switch(
-                        checked = alarm.isEnabled,
-                        onCheckedChange = { onToggle(alarm, it) },
-                        colors = SwitchDefaults.colors(
-                            checkedThumbColor = Color.Black,
-                            checkedTrackColor = MaterialTheme.colorScheme.primary,
-                            uncheckedThumbColor = Color.White,
-                            uncheckedTrackColor = Color.DarkGray
-                        )
-                    )
+                    TvimSwitch(checked = alarm.isEnabled, onCheckedChange = { onToggle(alarm, it) })
                 }
             }
             Text(
@@ -192,7 +186,7 @@ fun NextAlarmCard(alarm: Alarm, onToggle: (Alarm, Boolean) -> Unit, onEdit: (Ala
                 fontSize = 12.sp
             )
             Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.padding(top = 4.dp)) {
-                Icon(Icons.Default.Notifications, null, tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(12.dp))
+                TvimIcon(Icons.Default.Notifications, null, tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(12.dp))
                 Spacer(modifier = Modifier.width(4.dp))
                 Text(
                     text = if (alarm.label == "Будильник" || alarm.label == "Alarm") Strings.get("tab_alarm", lang) else alarm.label,
@@ -223,16 +217,7 @@ fun AlarmCard(alarm: Alarm, onToggle: (Boolean) -> Unit, onEdit: () -> Unit, lan
                     fontSize = 32.sp,
                     fontWeight = FontWeight.Normal
                 )
-                Switch(
-                    checked = alarm.isEnabled,
-                    onCheckedChange = onToggle,
-                    colors = SwitchDefaults.colors(
-                        checkedThumbColor = Color.Black,
-                        checkedTrackColor = MaterialTheme.colorScheme.primary,
-                        uncheckedThumbColor = Color.White,
-                        uncheckedTrackColor = Color.DarkGray
-                    )
-                )
+                TvimSwitch(checked = alarm.isEnabled, onCheckedChange = onToggle)
             }
             Text(text = formatDays(alarm.days, lang), color = GrayText, fontSize = 11.sp)
             Text(text = if (alarm.label == "Будильник" || alarm.label == "Alarm") Strings.get("tab_alarm", lang) else alarm.label, color = GrayText, fontSize = 11.sp)
@@ -241,12 +226,12 @@ fun AlarmCard(alarm: Alarm, onToggle: (Boolean) -> Unit, onEdit: () -> Unit, lan
 }
 
 @Composable
-fun SettingsScreen(appSettings: AppSettings, onColorChange: (Color) -> Unit, onLanguageChange: (String) -> Unit, lang: String) {
+fun SettingsScreen(appSettings: AppSettings, onColorChange: (Color) -> Unit, onLanguageChange: (String) -> Unit, lang: String, nothingDesign: Boolean, onNothingDesignChange: (Boolean) -> Unit) {
     var showColorPicker by remember { mutableStateOf(false) }
     var showLangPicker by remember { mutableStateOf(false) }
     var showHistory by remember { mutableStateOf(false) }
     val scope = rememberCoroutineScope()
-    var isCheckingUpdate by remember { mutableStateOf(false) }
+    var showUpdates by remember { mutableStateOf(false) }
     val context = LocalContext.current
 
     Column(modifier = Modifier.fillMaxSize().padding(16.dp).verticalScroll(rememberScrollState())) {
@@ -256,29 +241,17 @@ fun SettingsScreen(appSettings: AppSettings, onColorChange: (Color) -> Unit, onL
         SettingsItem(if (lang == "ru") "История будильников" else "Alarm history",
             if (lang == "ru") "Срабатывания и время отключения" else "Alarm events and dismissal times", { showHistory = true })
         SectionHeader(Strings.get("appearance", lang))
+        NothingDesignSetting(nothingDesign, onNothingDesignChange, lang)
+        Spacer(modifier = Modifier.height(12.dp))
         SettingsItem(Strings.get("theme_color", lang), Strings.get("theme_custom", lang), onClick = { showColorPicker = true })
         SettingsItem(Strings.get("language", lang), if (appSettings.language == "ru") "Русский" else "English", onClick = { showLangPicker = true })
         
         Spacer(modifier = Modifier.height(16.dp))
         SectionHeader(Strings.get("notifications", lang))
         SettingsItem(
-            title = Strings.get("check_updates", lang), 
-            subtitle = if (isCheckingUpdate) "..." else "v" + BuildConfig.VERSION_NAME,
-            onClick = {
-                scope.launch {
-                    isCheckingUpdate = true
-                    try {
-                        val manager = UpdateManager(context)
-                        val release = manager.checkForUpdates()
-                        if (release != null) manager.openRelease(release)
-                        else android.widget.Toast.makeText(context,
-                            if (manager.lastCheckFailed) {
-                                if (lang == "ru") "Не удалось проверить обновления. Повторите позже." else "Could not check for updates. Try again later."
-                            } else if (lang == "ru") "Новых версий не найдено." else "No new version found.",
-                            android.widget.Toast.LENGTH_LONG).show()
-                    } finally { isCheckingUpdate = false }
-                }
-            }
+            title = Strings.get("check_updates", lang),
+            subtitle = if (lang == "ru") "Загрузка и установка · v" + BuildConfig.VERSION_NAME else "Download and install · v" + BuildConfig.VERSION_NAME,
+            onClick = { showUpdates = true }
         )
 
         Spacer(modifier = Modifier.height(16.dp))
@@ -300,6 +273,8 @@ fun SettingsScreen(appSettings: AppSettings, onColorChange: (Color) -> Unit, onL
             }
         )
     }
+
+    if (showUpdates) UpdateDialog(lang = lang, onDismiss = { showUpdates = false })
 
     if (showHistory) androidx.compose.ui.window.Dialog(onDismissRequest = { showHistory = false },
         properties = androidx.compose.ui.window.DialogProperties(usePlatformDefaultWidth = false)) {
@@ -450,7 +425,7 @@ fun TvimTopBar(onAddClick: () -> Unit, lang: String) {
     ) {
         Text(text = Strings.get("app_name", lang), color = MaterialTheme.colorScheme.primary, fontSize = 24.sp, fontWeight = FontWeight.Bold, letterSpacing = 4.sp)
         IconButton(onClick = onAddClick) {
-            Icon(Icons.Default.Add, "Add", tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(32.dp))
+            TvimIcon(Icons.Default.Add, "Add", tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(32.dp))
         }
     }
 }
@@ -486,7 +461,7 @@ fun TvimBottomNavigation(selectedTab: Int, lang: String, onTabSelected: (Int) ->
             NavigationBarItem(
                 selected = isSelected,
                 onClick = { onTabSelected(item.third) },
-                icon = { Icon(item.second, null, tint = if (isSelected) primaryColor else GrayText, modifier = Modifier.size(24.dp)) },
+                icon = { TvimIcon(item.second, null, tint = if (isSelected) primaryColor else GrayText, modifier = Modifier.size(24.dp)) },
                 label = { Text(item.first, fontSize = 9.sp, color = if (isSelected) primaryColor else GrayText) },
                 colors = NavigationBarItemDefaults.colors(indicatorColor = Color.Transparent)
             )

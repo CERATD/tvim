@@ -55,14 +55,16 @@ class MainActivity : ComponentActivity() {
             val appSettings = remember { AppSettings(context) }
             var currentPrimaryColor by remember { mutableStateOf(appSettings.primaryColor) }
             var currentLanguage by remember { mutableStateOf(appSettings.language) }
+            var currentNothingDesign by remember { mutableStateOf(appSettings.nothingDesign) }
             
-            TvimTheme(primaryColor = currentPrimaryColor) {
+            TvimTheme(primaryColor = currentPrimaryColor, nothingDesign = currentNothingDesign) {
                 val storage = remember { AlarmStorage(context) }
                 val scheduler = remember { AlarmScheduler(context) }
                 val updateManager = remember { UpdateManager(context) }
                 var alarms by remember { mutableStateOf(storage.getAlarms()) }
                 var showAddDialog by remember { mutableStateOf(false) }
                 var showUpdateDialog by remember { mutableStateOf<GitHubRelease?>(null) }
+                var showDownloadStatus by remember { mutableStateOf(intent.getBooleanExtra("SHOW_UPDATES", false)) }
                 var editingAlarm by remember { mutableStateOf<Alarm?>(null) }
 
                 val launcher = rememberLauncherForActivityResult(
@@ -77,6 +79,8 @@ class MainActivity : ComponentActivity() {
                 )
 
                 LaunchedEffect(Unit) {
+                    val savedProgress = kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.IO) { UpdateDownloads(context).progress() }
+                    if (savedProgress.phase == UpdatePhase.READY) showDownloadStatus = true
                     val release = updateManager.checkForUpdates()
                     if (release != null) {
                         showUpdateDialog = release
@@ -108,27 +112,9 @@ class MainActivity : ComponentActivity() {
                     onDispose { lifecycle.removeObserver(observer); prefs.unregisterOnSharedPreferenceChangeListener(listener) }
                 }
 
-                // Update Dialog
-                showUpdateDialog?.let { release ->
-                    AlertDialog(
-                        onDismissRequest = { showUpdateDialog = null },
-                        title = { Text(Strings.get("check_updates", currentLanguage), color = MaterialTheme.colorScheme.primary, fontWeight = FontWeight.Bold) },
-                        text = { Text(if (currentLanguage == "ru") "Доступна версия ${release.tagName}. Открыть страницу загрузки?" else "Version ${release.tagName} is available. Open download page?", color = Color.White) },
-                        containerColor = Color(0xFF1A1A1A),
-                        confirmButton = {
-                            TextButton(onClick = {
-                                updateManager.openRelease(release)
-                                showUpdateDialog = null
-                            }) {
-                                Text(Strings.get("save", currentLanguage), color = MaterialTheme.colorScheme.primary, fontWeight = FontWeight.Bold)
-                            }
-                        },
-                        dismissButton = {
-                            TextButton(onClick = { showUpdateDialog = null }) {
-                                Text(Strings.get("cancel", currentLanguage), color = Color.Gray)
-                            }
-                        }
-                    )
+                if (showUpdateDialog != null || showDownloadStatus) {
+                    UpdateDialog(initial = showUpdateDialog, lang = currentLanguage,
+                        onDismiss = { showUpdateDialog = null; showDownloadStatus = false })
                 }
 
                 Scaffold(
@@ -144,6 +130,11 @@ class MainActivity : ComponentActivity() {
                             onLanguageChange = { 
                                 appSettings.language = it
                                 currentLanguage = it 
+                            },
+                            nothingDesign = currentNothingDesign,
+                            onNothingDesignChange = { enabled ->
+                                appSettings.nothingDesign = enabled
+                                currentNothingDesign = enabled
                             },
                             onAlarmToggle = { alarm, enabled ->
                                 val updated = alarm.copy(isEnabled = enabled)
@@ -251,7 +242,7 @@ fun AlarmSettingsDialog(
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     IconButton(onClick = onDismiss) {
-                        Icon(Icons.Default.Close, contentDescription = "Close", tint = Color.White)
+                        TvimIcon(Icons.Default.Close, contentDescription = "Close", tint = Color.White)
                     }
                     Text(
                         text = if (alarm == null) Strings.get("add_alarm", lang) else Strings.get("edit_alarm", lang),
@@ -504,7 +495,7 @@ fun VibrationPickerDialog(currentPattern: String, onDismiss: () -> Unit, onSelec
     var enabled by remember { mutableStateOf(currentPattern != "Off") }
     DesignSheet(Strings.get("vibration", lang), lang, onDismiss, { onSelect(if (enabled) selected else "Off") }) {
         SettingsRow(Icons.Default.Vibration, Strings.get("vibration", lang), content = {
-            Switch(enabled, { enabled = it; if (it) preview.start(selected, repeat = false) else preview.stop() })
+            TvimSwitch(enabled, { enabled = it; if (it) preview.start(selected, repeat = false) else preview.stop() })
         })
         if (!preview.available()) Text(if (lang == "ru") "На этом устройстве нет вибромотора." else "This device has no vibrator.", color = GrayText)
         OutlinedButton(onClick = { preview.start(selected, repeat = false) }, enabled = enabled && preview.available(),
@@ -520,7 +511,7 @@ fun VibrationPickerDialog(currentPattern: String, onDismiss: () -> Unit, onSelec
                         shape = RoundedCornerShape(20.dp)) {
                         Column(Modifier.fillMaxWidth().padding(20.dp), horizontalAlignment = Alignment.CenterHorizontally,
                             verticalArrangement = Arrangement.spacedBy(16.dp)) {
-                            Icon(Icons.Default.Vibration, null, Modifier.size(32.dp),
+                            TvimIcon(Icons.Default.Vibration, null, Modifier.size(32.dp),
                                 tint = if (enabled && selected == pattern) MaterialTheme.colorScheme.primary else Color.Gray)
                             Text(Strings.get(key, lang), textAlign = TextAlign.Center)
                             RadioButton(enabled && selected == pattern, { selected = pattern; enabled = true; preview.start(pattern, repeat = false) })
@@ -577,7 +568,7 @@ fun MissionPickerDialog(
                     ) {
                         Column(Modifier.fillMaxWidth().padding(20.dp), horizontalAlignment = Alignment.CenterHorizontally,
                             verticalArrangement = Arrangement.spacedBy(16.dp)) {
-                            Icon(info.second, null, Modifier.size(36.dp), tint = if (selected == type) MaterialTheme.colorScheme.primary else Color.Gray)
+                            TvimIcon(info.second, null, Modifier.size(36.dp), tint = if (selected == type) MaterialTheme.colorScheme.primary else Color.Gray)
                             Text(Strings.get(info.first, lang), textAlign = TextAlign.Center)
                             RadioButton(selected == type, { selected = type })
                         }

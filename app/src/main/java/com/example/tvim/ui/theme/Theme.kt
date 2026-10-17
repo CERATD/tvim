@@ -4,19 +4,45 @@ import android.app.Activity
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.darkColorScheme
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.runtime.SideEffect
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.platform.LocalView
+import androidx.compose.ui.text.font.FontFamily
+import androidx.compose.ui.unit.sp
 import androidx.core.view.WindowCompat
+
+val LocalNothingDesign = staticCompositionLocalOf { false }
+
+private val NothingTypography = Typography.copy(
+    displayLarge = Typography.displayLarge.copy(fontFamily = FontFamily.Monospace, letterSpacing = 1.sp),
+    displayMedium = Typography.displayMedium.copy(fontFamily = FontFamily.Monospace, letterSpacing = 1.sp),
+    displaySmall = Typography.displaySmall.copy(fontFamily = FontFamily.Monospace, letterSpacing = 1.sp),
+    headlineLarge = Typography.headlineLarge.copy(fontFamily = FontFamily.Monospace, letterSpacing = 0.8.sp),
+    headlineMedium = Typography.headlineMedium.copy(fontFamily = FontFamily.Monospace, letterSpacing = 0.8.sp),
+    headlineSmall = Typography.headlineSmall.copy(fontFamily = FontFamily.Monospace, letterSpacing = 0.8.sp),
+    titleLarge = Typography.titleLarge.copy(fontFamily = FontFamily.Monospace, letterSpacing = 0.5.sp),
+    titleMedium = Typography.titleMedium.copy(fontFamily = FontFamily.Monospace, letterSpacing = 0.5.sp),
+    titleSmall = Typography.titleSmall.copy(fontFamily = FontFamily.Monospace, letterSpacing = 0.5.sp),
+    bodyLarge = Typography.bodyLarge.copy(fontFamily = FontFamily.Monospace, letterSpacing = 0.4.sp),
+    bodyMedium = Typography.bodyMedium.copy(fontFamily = FontFamily.Monospace, letterSpacing = 0.4.sp),
+    bodySmall = Typography.bodySmall.copy(fontFamily = FontFamily.Monospace, letterSpacing = 0.4.sp),
+    labelLarge = Typography.labelLarge.copy(fontFamily = FontFamily.Monospace, letterSpacing = 0.5.sp),
+    labelMedium = Typography.labelMedium.copy(fontFamily = FontFamily.Monospace, letterSpacing = 0.5.sp),
+    labelSmall = Typography.labelSmall.copy(fontFamily = FontFamily.Monospace, letterSpacing = 0.5.sp)
+)
 
 @Composable
 fun TvimTheme(
     primaryColor: Color = RedAccent,
+    nothingDesign: Boolean = false,
     content: @Composable () -> Unit
 ) {
+    val activeColor = if (nothingDesign) Color(0xFFFF2433) else primaryColor
     val colorScheme = darkColorScheme(
-        primary = primaryColor,
+        primary = activeColor,
         onPrimary = Color.Black,
         background = PureBlack,
         onBackground = Color.White,
@@ -25,7 +51,7 @@ fun TvimTheme(
         surfaceVariant = Color(0xFF242424),
         surfaceContainerHighest = DarkGray,
         secondary = DarkGray,
-        onSecondary = primaryColor
+        onSecondary = activeColor
     )
 
     val view = LocalView.current
@@ -39,9 +65,11 @@ fun TvimTheme(
         }
     }
 
-    MaterialTheme(
-        colorScheme = colorScheme,
-        typography = Typography,
-        content = content
-    )
+    CompositionLocalProvider(LocalNothingDesign provides nothingDesign) {
+        MaterialTheme(
+            colorScheme = colorScheme,
+            typography = if (nothingDesign) NothingTypography else Typography,
+            content = content
+        )
+    }
 }

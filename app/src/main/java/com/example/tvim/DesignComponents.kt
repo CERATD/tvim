@@ -23,7 +23,7 @@ fun DesignSheet(title: String, lang: String, onDismiss: () -> Unit, onSave: () -
             Column(Modifier.fillMaxSize().systemBarsPadding().imePadding().padding(20.dp)) {
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     IconButton(onClick = onDismiss) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, Strings.get("cancel", lang))
+                        TvimIcon(Icons.AutoMirrored.Filled.ArrowBack, Strings.get("cancel", lang))
                     }
                     Text(title, style = MaterialTheme.typography.titleLarge)
                 }

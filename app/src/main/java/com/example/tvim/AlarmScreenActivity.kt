@@ -97,7 +97,7 @@ class AlarmScreenActivity : ComponentActivity(), SensorEventListener {
                     kotlinx.coroutines.delay(500)
                 }
             }
-            TvimTheme(primaryColor = appSettings.primaryColor) {
+            TvimTheme(primaryColor = appSettings.primaryColor, nothingDesign = appSettings.nothingDesign) {
                 Surface(modifier = Modifier.fillMaxSize(), color = Color.Black) {
                     Column(
                         modifier = Modifier.fillMaxSize().systemBarsPadding().imePadding().verticalScroll(rememberScrollState()).padding(24.dp),
@@ -144,7 +144,7 @@ class AlarmScreenActivity : ComponentActivity(), SensorEventListener {
             Canvas(Modifier.size(124.dp)) {
                 drawCircle(color = primaryColor.copy(alpha = 0.35f), style = Stroke(width = 2.dp.toPx()))
             }
-            Icon(Icons.Default.NotificationsActive, null, Modifier.size(56.dp), tint = primaryColor)
+            TvimIcon(Icons.Default.NotificationsActive, null, Modifier.size(56.dp), tint = primaryColor)
         }
     }
 
@@ -210,7 +210,7 @@ class AlarmScreenActivity : ComponentActivity(), SensorEventListener {
                     contentAlignment = Alignment.Center
                 ) {
                     if (btn == "DEL") {
-                        Icon(Icons.AutoMirrored.Filled.Backspace, null, tint = Color.White)
+                        TvimIcon(Icons.AutoMirrored.Filled.Backspace, null, tint = Color.White)
                     } else {
                         Text(
                             text = btn,
@@ -226,14 +226,19 @@ class AlarmScreenActivity : ComponentActivity(), SensorEventListener {
 
     @Composable
     fun ShakeMission(count: Int, required: Int) {
+        val nothingDesign = com.example.tvim.ui.theme.LocalNothingDesign.current
+        val progressColor = MaterialTheme.colorScheme.primary
         Column(horizontalAlignment = Alignment.CenterHorizontally) {
             Text(Strings.get("shake_to_dismiss", lang), color = Color.Gray, fontSize = 12.sp, letterSpacing = 2.sp)
             Spacer(modifier = Modifier.height(16.dp))
             Box(Modifier.size(220.dp), contentAlignment = Alignment.Center) {
-                CircularProgressIndicator(progress = { (count.toFloat() / required).coerceIn(0f, 1f) },
-                    modifier = Modifier.fillMaxSize(), strokeWidth = 8.dp, trackColor = Color(0xFF242424))
+                val progress = (count.toFloat() / required).coerceIn(0f, 1f)
+                if (nothingDesign) androidx.compose.foundation.Canvas(Modifier.fillMaxSize()) {
+                    drawNothingDots(Color(0xFF303030), 0f, 360f, 8.dp)
+                    drawNothingDots(progressColor, -90f, progress * 360f, 8.dp)
+                } else CircularProgressIndicator(progress = { progress }, modifier = Modifier.fillMaxSize(), strokeWidth = 8.dp, trackColor = Color(0xFF242424))
                 Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                    Icon(Icons.Default.Vibration, null, Modifier.size(48.dp), tint = MaterialTheme.colorScheme.primary)
+                    TvimIcon(Icons.Default.Vibration, null, Modifier.size(48.dp), tint = MaterialTheme.colorScheme.primary)
                     Spacer(Modifier.height(16.dp))
                     Text("$count / $required", color = Color.White, fontSize = 36.sp)
                 }

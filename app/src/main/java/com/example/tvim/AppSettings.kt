@@ -22,4 +22,8 @@ class AppSettings(context: Context) {
     var language: String
         get() = prefs.getString("app_language", "ru") ?: "ru"
         set(value) = prefs.edit().putString("app_language", value).apply()
+
+    var nothingDesign: Boolean
+        get() = prefs.getBoolean("nothing_design", false)
+        set(value) = prefs.edit().putBoolean("nothing_design", value).apply()
 }

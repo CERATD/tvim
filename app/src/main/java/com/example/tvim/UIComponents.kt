@@ -87,13 +87,13 @@ fun SettingsRow(
             .clip(androidx.compose.foundation.shape.RoundedCornerShape(16.dp)).background(Color(0xFF1B1B1B)).padding(16.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
-        Icon(icon, contentDescription = null, tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(24.dp))
+        TvimIcon(icon, contentDescription = null, tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(24.dp))
         Spacer(modifier = Modifier.width(16.dp))
         Text(title, color = Color.White, fontSize = 16.sp, modifier = Modifier.weight(1f))
         if (value != null) {
             Text(value, color = GrayText, fontSize = 14.sp, maxLines = 1, overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis, modifier = Modifier.widthIn(max = 150.dp))
             Spacer(modifier = Modifier.width(8.dp))
-            Icon(Icons.Default.ChevronRight, contentDescription = null, tint = GrayText, modifier = Modifier.size(20.dp))
+            TvimIcon(Icons.Default.ChevronRight, contentDescription = null, tint = GrayText, modifier = Modifier.size(20.dp))
         } else if (content != null) {
             content()
         }
@@ -150,7 +150,7 @@ fun SoundPickerDialog(
 
     DesignSheet(Strings.get("melody", lang), lang, onDismiss, { preview.stop(); onSelect(selected) }, saveEnabled = !importing) {
         OutlinedButton(onClick = { filePickerLauncher.launch(arrayOf("audio/*")) }, enabled = !importing, modifier = Modifier.fillMaxWidth()) {
-            Icon(Icons.Default.UploadFile, null)
+            TvimIcon(Icons.Default.UploadFile, null)
             Spacer(Modifier.width(12.dp))
             Text(Strings.get("import_sound", lang))
         }
@@ -181,14 +181,14 @@ fun SoundPickerDialog(
                             else android.widget.Toast.makeText(context, if (lang == "ru") "Файл недоступен. Импортируйте его снова."
                                 else "File unavailable. Import it again.", android.widget.Toast.LENGTH_LONG).show()
                         }) {
-                            Icon(Icons.Default.PlayArrow, if (lang == "ru") "Прослушать" else "Preview", tint = MaterialTheme.colorScheme.primary)
+                            TvimIcon(Icons.Default.PlayArrow, if (lang == "ru") "Прослушать" else "Preview", tint = MaterialTheme.colorScheme.primary)
                         }
                     }
                 }
             }
         }
         OutlinedButton(onClick = { preview.stop() }, modifier = Modifier.fillMaxWidth()) {
-            Icon(Icons.Default.Stop, null)
+            TvimIcon(Icons.Default.Stop, null)
             Text(if (lang == "ru") "Остановить прослушивание" else "Stop preview")
         }
     }
@@ -205,7 +205,7 @@ fun SettingsItem(title: String, subtitle: String, onClick: () -> Unit = {}) {
             Text(title, color = Color.White, fontSize = 16.sp)
             Text(subtitle, color = GrayText, fontSize = 12.sp)
         }
-        Icon(Icons.Default.ChevronRight, null, tint = GrayText)
+        TvimIcon(Icons.Default.ChevronRight, null, tint = GrayText)
     }
 }
 

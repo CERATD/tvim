@@ -38,6 +38,8 @@ fun TimerScreen(lang: String) {
     val duration = (h * 3600L + m * 60L + s) * 1000
     val valid = h in 0..23 && m in 0..59 && s in 0..59 && duration > 0
     val idle = state.status == "idle"
+    val nothingDesign = com.example.tvim.ui.theme.LocalNothingDesign.current
+    val progressColor = MaterialTheme.colorScheme.primary
     val remaining = if (idle) duration else state.remaining
     val totalSeconds = (remaining + 999) / 1000
     Column(Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(20.dp),
@@ -45,9 +47,13 @@ fun TimerScreen(lang: String) {
         Text(Strings.get("tab_timer", lang), Modifier.fillMaxWidth(), style = MaterialTheme.typography.headlineSmall)
         AlarmReadiness(lang)
         Box(Modifier.size(240.dp), contentAlignment = Alignment.Center) {
-            CircularProgressIndicator(progress = {
-                if (idle) 1f else (state.remaining.toFloat() / state.duration.coerceAtLeast(1)).coerceIn(0f, 1f)
-            }, modifier = Modifier.fillMaxSize(), strokeWidth = 8.dp, trackColor = Color(0xFF242424))
+            val progress = if (idle) 1f else (state.remaining.toFloat() / state.duration.coerceAtLeast(1)).coerceIn(0f, 1f)
+            if (nothingDesign) {
+                androidx.compose.foundation.Canvas(Modifier.fillMaxSize()) {
+                    drawNothingDots(Color(0xFF303030), 0f, 360f, 8.dp)
+                    drawNothingDots(progressColor, -90f, progress * 360f, 8.dp)
+                }
+            } else CircularProgressIndicator(progress = { progress }, modifier = Modifier.fillMaxSize(), strokeWidth = 8.dp, trackColor = Color(0xFF242424))
             Column(horizontalAlignment = Alignment.CenterHorizontally) {
                 Text(String.format(Locale.ROOT, "%02d:%02d:%02d", totalSeconds / 3600,
                     totalSeconds % 3600 / 60, totalSeconds % 60), fontSize = 32.sp)
