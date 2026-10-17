@@ -3,10 +3,15 @@ package com.example.tvim
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material.icons.outlined.*
@@ -14,6 +19,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.Switch
 import androidx.compose.material3.SwitchDefaults
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -23,15 +29,62 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.semantics.clearAndSetSemantics
+import androidx.compose.ui.text.font.FontFamily
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.Dp
 import com.example.tvim.ui.theme.LocalNothingDesign
+import com.example.tvim.ui.theme.NothingDisplayFont
 import kotlin.math.PI
 import kotlin.math.ceil
 import kotlin.math.cos
 import kotlin.math.max
 import kotlin.math.min
 import kotlin.math.sin
+
+/** Renders clock separators as vertically centered dots in Nothing Design. */
+@Composable
+fun TvimDigitalTime(
+    text: String,
+    modifier: Modifier = Modifier,
+    fontSize: TextUnit,
+    color: Color = LocalContentColor.current,
+    fontFamily: FontFamily = NothingDisplayFont,
+    fontWeight: FontWeight? = null,
+    letterSpacing: TextUnit = TextUnit.Unspecified,
+    nothingDesign: Boolean = LocalNothingDesign.current
+) {
+    if (!nothingDesign || ':' !in text) {
+        Text(text, modifier, color = color, fontSize = fontSize, fontFamily = fontFamily,
+            fontWeight = fontWeight, letterSpacing = letterSpacing)
+        return
+    }
+
+    val parts = text.split(':')
+    val layoutSize = fontSize.value.dp
+    Row(
+        modifier = modifier.clearAndSetSemantics { contentDescription = text },
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        parts.forEachIndexed { index, part ->
+            Text(part, color = color, fontSize = fontSize, fontFamily = fontFamily,
+                fontWeight = fontWeight, letterSpacing = letterSpacing)
+            if (index < parts.lastIndex) {
+                Column(
+                    modifier = Modifier.width(layoutSize * 0.25f).height(layoutSize * 1.2f),
+                    verticalArrangement = Arrangement.spacedBy(layoutSize * 0.1f, Alignment.CenterVertically),
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
+                    val dotSize = layoutSize * 0.12f
+                    Box(Modifier.size(dotSize).background(color, androidx.compose.foundation.shape.RoundedCornerShape(1.dp)))
+                    Box(Modifier.size(dotSize).background(color, androidx.compose.foundation.shape.RoundedCornerShape(1.dp)))
+                }
+            }
+        }
+    }
+}
 
 fun DrawScope.drawNothingDots(color: Color, startAngle: Float, sweepAngle: Float, strokeWidth: Dp) {
     val radius = min(size.width, size.height) / 2f - strokeWidth.toPx() / 2f

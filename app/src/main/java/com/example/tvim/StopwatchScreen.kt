@@ -39,8 +39,10 @@ fun StopwatchScreen(lang: String) {
             Card(Modifier.fillMaxWidth(), shape = RoundedCornerShape(24.dp),
                 colors = CardDefaults.cardColors(containerColor = Color(0xFF1B1B1B))) {
                 Column(Modifier.fillMaxWidth().padding(vertical = 40.dp, horizontal = 8.dp), horizontalAlignment = Alignment.CenterHorizontally) {
-                    Text(stopwatchTime(state.elapsed), fontFamily = if (nothingDesign) NothingDisplayFont else FontFamily.Monospace,
-                        fontSize = 28.sp, letterSpacing = if (nothingDesign) 1.sp else 0.sp)
+                    TvimDigitalTime(stopwatchTime(state.elapsed), color = Color.White,
+                        fontFamily = if (nothingDesign) NothingDisplayFont else FontFamily.Monospace,
+                        fontSize = 28.sp, letterSpacing = if (nothingDesign) 1.sp else 0.sp,
+                        nothingDesign = nothingDesign)
                     Spacer(Modifier.height(12.dp))
                     Text(if (state.running) (if (lang == "ru") "Идёт отсчёт" else "Running")
                         else if (lang == "ru") "На паузе" else "Paused", color = Color.Gray)
@@ -64,27 +66,22 @@ fun StopwatchScreen(lang: String) {
         }
         if (state.laps.isNotEmpty()) item {
             Text(if (lang == "ru") "КРУГИ · время круга / общее" else "LAPS · split / total", color = Color.Gray, fontSize = 12.sp)
-            if (splits.size > 1) Text(if (lang == "ru") "Зелёный — самый быстрый, красный — самый медленный."
-                else "Green is fastest; red is slowest.", color = Color.Gray, fontSize = 12.sp)
         }
         itemsIndexed(state.laps.asReversed()) { reverseIndex, total ->
             val index = state.laps.lastIndex - reverseIndex
             val split = splits[index]
-            val color = when {
-                splits.size < 2 || splits.minOrNull() == splits.maxOrNull() -> Color.White
-                split == splits.minOrNull() -> Color(0xFF66BB6A)
-                split == splits.maxOrNull() -> Color(0xFFFF6666)
-                else -> Color.White
-            }
             Card(Modifier.fillMaxWidth()) {
                 Row(Modifier.fillMaxWidth().padding(16.dp), horizontalArrangement = Arrangement.SpaceBetween,
                     verticalAlignment = Alignment.CenterVertically) {
-                    Text("#${index + 1}", color = color)
+                    Text("#${index + 1}", color = Color.White)
                     Column(horizontalAlignment = Alignment.End) {
-                        Text(stopwatchTime(split), color = color, fontFamily = if (nothingDesign) NothingDisplayFont else FontFamily.Monospace,
-                            letterSpacing = if (nothingDesign) 0.7.sp else 0.sp)
-                        Text(stopwatchTime(total), color = Color.Gray, fontSize = 12.sp,
-                            fontFamily = if (nothingDesign) NothingDisplayFont else FontFamily.Monospace)
+                        TvimDigitalTime(stopwatchTime(split), color = Color.White,
+                            fontFamily = if (nothingDesign) NothingDisplayFont else FontFamily.Monospace,
+                            letterSpacing = if (nothingDesign) 0.7.sp else 0.sp, fontSize = 16.sp,
+                            nothingDesign = nothingDesign)
+                        TvimDigitalTime(stopwatchTime(total), color = Color.Gray, fontSize = 12.sp,
+                            fontFamily = if (nothingDesign) NothingDisplayFont else FontFamily.Monospace,
+                            nothingDesign = nothingDesign)
                     }
                 }
             }

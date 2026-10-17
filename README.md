@@ -1,4 +1,4 @@
-# Tvim 1.9.6
+# Tvim 1.9.7
 
 Aplicație Android pentru alarme, cu interfața existentă în rusă și engleză. Necesită Android 7.0 sau mai nou.
 
@@ -64,11 +64,11 @@ Arhiva cărții și textul integral nu sunt incluse în proiect sau APK.
 
 Interfața folosește conceptul din design/tvim-ui-concept-v1.png: negru, carduri rotunjite, accent roșu, timp digital compact, selecție de sunete și misiuni, progres circular și istoric cu date reale.
 
-## Download Tvim 1.9.6
+## Download Tvim 1.9.7
 
-[Download Tvim 1.9.6 APK](https://github.com/CERATD/tvim/releases/download/v1.9.6/Tvim-1.9.6.apk)
+[Download Tvim 1.9.7 APK](https://github.com/CERATD/tvim/releases/download/v1.9.7/Tvim-1.9.7.apk)
 
-[Release notes](RELEASE-1.9.6.md)
+[Release notes](RELEASE-1.9.7.md)
 
 Android 7.0 or newer. This APK uses the same local debug signing key as the previously delivered builds. See VERIFICATION.md for tests and limitations.
 
@@ -108,7 +108,7 @@ Nothing Design now uses a dot-matrix typeface for all interface text, including 
 
 ## Update 1.9.3
 
-Theme colors can be selected from six fixed choices: red, turquoise, black, white, pink and green. The selection applies in both classic and Nothing Design, and the rainbow gradient control has been removed.
+Theme colors can be selected from five fixed choices: red, turquoise, white, pink and green. The selection applies in both classic and Nothing Design, and the rainbow gradient control has been removed.
 
 ## Update 1.9.4
 
@@ -121,3 +121,7 @@ Wake-up history text now has clear contrast in both themes, chart bars keep the 
 ## Update 1.9.6
 
 Removed black from the theme color choices. Existing black selections are changed to red when the app opens.
+
+## Update 1.9.7
+
+The Nothing-style digital time separators use vertically centered dots across the alarm, timer and stopwatch. Stopwatch laps no longer use red and green speed highlighting.

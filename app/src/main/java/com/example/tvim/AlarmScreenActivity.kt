@@ -106,13 +106,14 @@ class AlarmScreenActivity : ComponentActivity(), SensorEventListener {
                         verticalArrangement = Arrangement.SpaceBetween
                     ) {
                         Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                            Text(
+                            TvimDigitalTime(
                                 text = String.format(Locale.getDefault(), "%02d:%02d", Calendar.getInstance().get(Calendar.HOUR_OF_DAY), Calendar.getInstance().get(Calendar.MINUTE)),
-                                color = Color.White,
                                 fontSize = if (missionType.value == MissionType.NONE) 64.sp else 32.sp,
+                                color = Color.White,
                                 fontWeight = FontWeight.Light,
                                 fontFamily = if (appSettings.nothingDesign) NothingDisplayFont else androidx.compose.ui.text.font.FontFamily.Default,
-                                letterSpacing = if (appSettings.nothingDesign) 1.5.sp else 0.sp
+                                letterSpacing = if (appSettings.nothingDesign) 1.5.sp else 0.sp,
+                                nothingDesign = appSettings.nothingDesign
                             )
                             Spacer(modifier = Modifier.height(32.dp))
                             Text(alarm?.label.orEmpty(), color = Color.Gray)

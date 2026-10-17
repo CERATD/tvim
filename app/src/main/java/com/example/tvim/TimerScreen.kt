@@ -56,10 +56,10 @@ fun TimerScreen(lang: String) {
                 }
             } else CircularProgressIndicator(progress = { progress }, modifier = Modifier.fillMaxSize(), strokeWidth = 8.dp, trackColor = Color(0xFF242424))
             Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                Text(String.format(Locale.ROOT, "%02d:%02d:%02d", totalSeconds / 3600,
+                TvimDigitalTime(String.format(Locale.ROOT, "%02d:%02d:%02d", totalSeconds / 3600,
                     totalSeconds % 3600 / 60, totalSeconds % 60), fontSize = 32.sp,
                     fontFamily = if (nothingDesign) NothingDisplayFont else androidx.compose.ui.text.font.FontFamily.Default,
-                    letterSpacing = if (nothingDesign) 1.2.sp else 0.sp)
+                    letterSpacing = if (nothingDesign) 1.2.sp else 0.sp, nothingDesign = nothingDesign)
                 Spacer(Modifier.height(8.dp))
                 Text(when (state.status) {
                     "running" -> if (lang == "ru") "Обратный отсчёт" else "Counting down"

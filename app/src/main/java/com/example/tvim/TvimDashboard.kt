@@ -136,34 +136,15 @@ private fun AlarmTimeDisplay(
 ) {
     val hours = String.format(Locale.getDefault(), "%02d", hour)
     val minutes = String.format(Locale.getDefault(), "%02d", minute)
-    if (nothingDesign) {
-        val layoutSize = fontSize.value.dp
-        Row(verticalAlignment = Alignment.CenterVertically) {
-            Text(hours, color = color, fontSize = fontSize, fontWeight = fontWeight,
-                fontFamily = NothingDisplayFont, letterSpacing = letterSpacing)
-            Column(
-                modifier = Modifier
-                    .width(layoutSize * 0.25f)
-                    .height(layoutSize * 1.2f),
-                verticalArrangement = Arrangement.spacedBy(layoutSize * 0.1f, Alignment.CenterVertically),
-                horizontalAlignment = Alignment.CenterHorizontally
-            ) {
-                val dotSize = layoutSize * 0.12f
-                Box(Modifier.size(dotSize).background(color, RoundedCornerShape(1.dp)))
-                Box(Modifier.size(dotSize).background(color, RoundedCornerShape(1.dp)))
-            }
-            Text(minutes, color = color, fontSize = fontSize, fontWeight = fontWeight,
-                fontFamily = NothingDisplayFont, letterSpacing = letterSpacing)
-        }
-    } else {
-        Text(
-            text = "$hours:$minutes",
-            color = color,
-            fontSize = fontSize,
-            fontWeight = fontWeight,
-            letterSpacing = letterSpacing
-        )
-    }
+    TvimDigitalTime(
+        text = "$hours:$minutes",
+        color = color,
+        fontSize = fontSize,
+        fontWeight = fontWeight,
+        fontFamily = if (nothingDesign) NothingDisplayFont else androidx.compose.ui.text.font.FontFamily.Default,
+        letterSpacing = letterSpacing,
+        nothingDesign = nothingDesign
+    )
 }
 
 @Composable
