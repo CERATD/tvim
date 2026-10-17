@@ -1,4 +1,4 @@
-# Tvim 1.9.7
+# Tvim 1.9.8
 
 Aplicație Android pentru alarme, cu interfața existentă în rusă și engleză. Necesită Android 7.0 sau mai nou.
 
@@ -64,11 +64,11 @@ Arhiva cărții și textul integral nu sunt incluse în proiect sau APK.
 
 Interfața folosește conceptul din design/tvim-ui-concept-v1.png: negru, carduri rotunjite, accent roșu, timp digital compact, selecție de sunete și misiuni, progres circular și istoric cu date reale.
 
-## Download Tvim 1.9.7
+## Download Tvim 1.9.8
 
-[Download Tvim 1.9.7 APK](https://github.com/CERATD/tvim/releases/download/v1.9.7/Tvim-1.9.7.apk)
+[Download Tvim 1.9.8 APK](https://github.com/CERATD/tvim/releases/download/v1.9.8/Tvim-1.9.8.apk)
 
-[Release notes](RELEASE-1.9.7.md)
+[Release notes](RELEASE-1.9.8.md)
 
 Android 7.0 or newer. This APK uses the same local debug signing key as the previously delivered builds. See VERIFICATION.md for tests and limitations.
 
@@ -125,3 +125,7 @@ Removed black from the theme color choices. Existing black selections are change
 ## Update 1.9.7
 
 The Nothing-style digital time separators use vertically centered dots across the alarm, timer and stopwatch. Stopwatch laps no longer use red and green speed highlighting.
+
+## Update 1.9.8
+
+The stopwatch is monochrome throughout: lap times have no speed colors, its controls are neutral, and its selected navigation item uses white. Other tabs continue to use the selected theme color.

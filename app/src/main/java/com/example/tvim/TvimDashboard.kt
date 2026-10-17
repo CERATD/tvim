@@ -456,12 +456,12 @@ fun TvimBottomNavigation(selectedTab: Int, lang: String, onTabSelected: (Int) ->
         )
         items.forEach { item ->
             val isSelected = selectedTab == item.third
-            val primaryColor = MaterialTheme.colorScheme.primary
+            val selectedColor = if (item.third == 1) Color.White else MaterialTheme.colorScheme.primary
             NavigationBarItem(
                 selected = isSelected,
                 onClick = { onTabSelected(item.third) },
-                icon = { TvimIcon(item.second, null, tint = if (isSelected) primaryColor else GrayText, modifier = Modifier.size(24.dp)) },
-                label = { Text(item.first, fontSize = 9.sp, color = if (isSelected) primaryColor else GrayText) },
+                icon = { TvimIcon(item.second, null, tint = if (isSelected) selectedColor else GrayText, modifier = Modifier.size(24.dp)) },
+                label = { Text(item.first, fontSize = 9.sp, color = if (isSelected) selectedColor else GrayText) },
                 colors = NavigationBarItemDefaults.colors(indicatorColor = Color.Transparent)
             )
         }

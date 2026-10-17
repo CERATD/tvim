@@ -53,11 +53,15 @@ fun StopwatchScreen(lang: String) {
             Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                 OutlinedButton(onClick = { if (state.running) store.lap() else store.reset(); state = store.snapshot() },
                     enabled = if (state.running) state.laps.size < 500 else state.elapsed > 0,
-                    modifier = Modifier.weight(1f).heightIn(min = 56.dp), shape = RoundedCornerShape(16.dp)) {
+                    modifier = Modifier.weight(1f).heightIn(min = 56.dp), shape = RoundedCornerShape(16.dp),
+                    colors = ButtonDefaults.outlinedButtonColors(contentColor = Color.White, disabledContentColor = Color.DarkGray),
+                    border = androidx.compose.foundation.BorderStroke(1.dp, if (state.running || state.elapsed > 0) Color.Gray else Color(0xFF303030))) {
                     Text(if (state.running) (if (lang == "ru") "Круг" else "Lap") else if (lang == "ru") "Сбросить" else "Reset")
                 }
                 Button(onClick = { if (state.running) store.pause() else store.start(); state = store.snapshot() },
-                    modifier = Modifier.weight(1f).heightIn(min = 56.dp), shape = RoundedCornerShape(16.dp)) {
+                    modifier = Modifier.weight(1f).heightIn(min = 56.dp), shape = RoundedCornerShape(16.dp),
+                    colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF303030), contentColor = Color.White,
+                        disabledContainerColor = Color(0xFF202020), disabledContentColor = Color.Gray)) {
                     Text(if (state.running) (if (lang == "ru") "Пауза" else "Pause")
                         else if (state.elapsed > 0) (if (lang == "ru") "Продолжить" else "Resume")
                         else if (lang == "ru") "Старт" else "Start")
