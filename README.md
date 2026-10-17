@@ -1,4 +1,4 @@
-# Tvim 1.9.3
+# Tvim 1.9.4
 
 Aplicație Android pentru alarme, cu interfața existentă în rusă și engleză. Necesită Android 7.0 sau mai nou.
 
@@ -64,11 +64,11 @@ Arhiva cărții și textul integral nu sunt incluse în proiect sau APK.
 
 Interfața folosește conceptul din design/tvim-ui-concept-v1.png: negru, carduri rotunjite, accent roșu, timp digital compact, selecție de sunete și misiuni, progres circular și istoric cu date reale.
 
-## Download Tvim 1.9.3
+## Download Tvim 1.9.4
 
-[Download Tvim 1.9.3 APK](https://github.com/CERATD/tvim/releases/download/v1.9.3/Tvim-1.9.3.apk)
+[Download Tvim 1.9.4 APK](https://github.com/CERATD/tvim/releases/download/v1.9.4/Tvim-1.9.4.apk)
 
-[Release notes](RELEASE-1.9.3.md)
+[Release notes](RELEASE-1.9.4.md)
 
 Android 7.0 or newer. This APK uses the same local debug signing key as the previously delivered builds. See VERIFICATION.md for tests and limitations.
 
@@ -109,3 +109,7 @@ Nothing Design now uses a dot-matrix typeface for all interface text, including 
 ## Update 1.9.3
 
 Theme colors can be selected from six fixed choices: red, turquoise, black, white, pink and green. The selection applies in both classic and Nothing Design, and the rainbow gradient control has been removed.
+
+## Update 1.9.4
+
+The two dots in the digital alarm time separator are centered vertically in Nothing Design.

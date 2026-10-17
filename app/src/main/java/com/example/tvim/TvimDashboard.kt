@@ -125,6 +125,48 @@ fun MainAlarmScreen(
 }
 
 @Composable
+private fun AlarmTimeDisplay(
+    hour: Int,
+    minute: Int,
+    color: Color,
+    fontSize: androidx.compose.ui.unit.TextUnit,
+    fontWeight: FontWeight,
+    nothingDesign: Boolean,
+    letterSpacing: androidx.compose.ui.unit.TextUnit
+) {
+    val hours = String.format(Locale.getDefault(), "%02d", hour)
+    val minutes = String.format(Locale.getDefault(), "%02d", minute)
+    if (nothingDesign) {
+        val layoutSize = fontSize.value.dp
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            Text(hours, color = color, fontSize = fontSize, fontWeight = fontWeight,
+                fontFamily = NothingDisplayFont, letterSpacing = letterSpacing)
+            Column(
+                modifier = Modifier
+                    .width(layoutSize * 0.25f)
+                    .height(layoutSize * 1.2f),
+                verticalArrangement = Arrangement.spacedBy(layoutSize * 0.1f, Alignment.CenterVertically),
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                val dotSize = layoutSize * 0.12f
+                Box(Modifier.size(dotSize).background(color, RoundedCornerShape(1.dp)))
+                Box(Modifier.size(dotSize).background(color, RoundedCornerShape(1.dp)))
+            }
+            Text(minutes, color = color, fontSize = fontSize, fontWeight = fontWeight,
+                fontFamily = NothingDisplayFont, letterSpacing = letterSpacing)
+        }
+    } else {
+        Text(
+            text = "$hours:$minutes",
+            color = color,
+            fontSize = fontSize,
+            fontWeight = fontWeight,
+            letterSpacing = letterSpacing
+        )
+    }
+}
+
+@Composable
 fun NextAlarmCard(alarm: Alarm, onToggle: (Alarm, Boolean) -> Unit, onEdit: (Alarm) -> Unit, lang: String) {
     var currentTime by remember { mutableStateOf(Calendar.getInstance()) }
     
@@ -157,12 +199,13 @@ fun NextAlarmCard(alarm: Alarm, onToggle: (Alarm, Boolean) -> Unit, onEdit: (Ala
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
-                Text(
-                    text = String.format(Locale.getDefault(), "%02d:%02d", alarm.hour, alarm.minute),
+                AlarmTimeDisplay(
+                    hour = alarm.hour,
+                    minute = alarm.minute,
                     color = Color.White,
                     fontSize = 42.sp,
                     fontWeight = FontWeight.Medium,
-                    fontFamily = if (nothingDesign) NothingDisplayFont else androidx.compose.ui.text.font.FontFamily.Default,
+                    nothingDesign = nothingDesign,
                     letterSpacing = if (nothingDesign) 1.4.sp else 0.sp
                 )
                 
@@ -212,12 +255,13 @@ fun AlarmCard(alarm: Alarm, onToggle: (Boolean) -> Unit, onEdit: () -> Unit, lan
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
-                Text(
-                    text = String.format(Locale.getDefault(), "%02d:%02d", alarm.hour, alarm.minute),
+                AlarmTimeDisplay(
+                    hour = alarm.hour,
+                    minute = alarm.minute,
                     color = if (alarm.isEnabled) Color.White else GrayText,
                     fontSize = 32.sp,
                     fontWeight = FontWeight.Normal,
-                    fontFamily = if (nothingDesign) NothingDisplayFont else androidx.compose.ui.text.font.FontFamily.Default,
+                    nothingDesign = nothingDesign,
                     letterSpacing = if (nothingDesign) 1.2.sp else 0.sp
                 )
                 TvimSwitch(checked = alarm.isEnabled, onCheckedChange = onToggle)
