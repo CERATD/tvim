@@ -11,6 +11,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.width
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
@@ -73,7 +74,8 @@ fun TvimDigitalTime(
                 fontWeight = fontWeight, letterSpacing = letterSpacing)
             if (index < parts.lastIndex) {
                 Column(
-                    modifier = Modifier.width(layoutSize * 0.25f).height(layoutSize * 1.2f),
+                    modifier = Modifier.width(layoutSize * 0.25f).height(layoutSize * 1.2f)
+                        .offset(x = -layoutSize * 0.1f),
                     verticalArrangement = Arrangement.spacedBy(layoutSize * 0.1f, Alignment.CenterVertically),
                     horizontalAlignment = Alignment.CenterHorizontally
                 ) {
