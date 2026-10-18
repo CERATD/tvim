@@ -25,6 +25,8 @@ class TvinMessagesTest {
         store = TvinMessages(context)
     }
     @Test fun optInSchedulesTwoMessagesAndDisablingCancelsBoth() {
+        store.save(TvinMessage(0, 8, 0, "Morning custom"))
+        store.save(TvinMessage(1, 22, 0, "Night custom"))
         assertFalse(store.enabled)
         store.restore()
         val alarms = shadowOf(context.getSystemService(AlarmManager::class.java))
@@ -40,7 +42,7 @@ class TvinMessagesTest {
         store.enabled = true
         store.save(TvinMessage(0, 9, 45, "  Hello!  "))
         assertEquals(TvinMessage(0, 9, 45, "Hello!"), TvinMessages(context).messages()[0])
-        assertEquals(2, shadowOf(context.getSystemService(AlarmManager::class.java)).scheduledAlarms.size)
+        assertEquals(1, shadowOf(context.getSystemService(AlarmManager::class.java)).scheduledAlarms.size)
     }
     @Test fun editingWhileDisabledDoesNotSchedule() {
         store.save(TvinMessage(1, 23, 15, "Sleep well"))
@@ -71,7 +73,7 @@ class TvinMessagesTest {
         assertTrue(next > at)
         store.deliver(0, at)
         assertEquals(next, prefs.getLong("scheduled_0", 0))
-        assertEquals(2, shadowOf(context.getSystemService(AlarmManager::class.java)).scheduledAlarms.size)
+        assertEquals(1, shadowOf(context.getSystemService(AlarmManager::class.java)).scheduledAlarms.size)
         store.enabled = false
         assertEquals(0, notifications.size())
     }
@@ -90,16 +92,33 @@ class TvinMessagesTest {
         store.save(TvinMessage(1, 21, 30, listOf("Only one")))
         repeat(3) { assertEquals("Only one", store.chooseText(store.messages()[1])) }
     }
-    @Test fun legacyCustomMessageSurvivesAlongsideDefaults() {
+    @Test fun legacyCustomMessageSurvivesWithoutDefaults() {
         context.getSharedPreferences("tvin_messages", Context.MODE_PRIVATE).edit().putString("text_0", "My greeting").commit()
-        assertTrue(store.messages()[0].texts.contains("My greeting"))
-        assertTrue(store.messages()[0].texts.size >= 10)
-        for (language in listOf("ru", "en")) for (id in 0..1) {
-            assertEquals(10, TvinMessages.defaultVariants(id, language).distinct().size)
-        }
+        assertEquals(listOf("My greeting"), store.messages()[0].texts)
+        assertTrue(store.messages()[1].texts.isEmpty())
     }
-    @Test(expected = IllegalArgumentException::class) fun emptyVariantListIsRejected() {
+    @Test fun freshInstallHasNoMessagesOrSchedules() {
+        assertTrue(store.messages().all { it.texts.isEmpty() })
+        store.enabled = true
+        assertEquals(0, shadowOf(context.getSystemService(AlarmManager::class.java)).scheduledAlarms.size)
+        assertNull(store.chooseText(store.messages()[0]))
+    }
+    @Test fun shippedMessagesAreRemovedOnceButCustomEditsSurvive() {
+        val defaults = TvinMessages.legacyDefaultVariants(0, "ru") + TvinMessages.legacyDefaultVariants(0, "en")
+        context.getSharedPreferences("tvin_messages", Context.MODE_PRIVATE).edit()
+            .putString("variants_0", org.json.JSONArray(defaults + "My edited greeting").toString()).commit()
+        assertEquals(listOf("My edited greeting"), store.messages()[0].texts)
+        store.save(TvinMessage(0, 8, 0, defaults.first()))
+        assertEquals(listOf(defaults.first()), TvinMessages(context).messages()[0].texts)
+    }
+    @Test fun deletingLastMessageCancelsAndRemainsEmptyAfterRestore() {
+        store.enabled = true
+        store.save(TvinMessage(0, 8, 0, "Hello"))
         store.save(TvinMessage(0, 8, 0, emptyList()))
+        val recreated = TvinMessages(context)
+        recreated.restore()
+        assertTrue(recreated.messages()[0].texts.isEmpty())
+        assertEquals(0, shadowOf(context.getSystemService(AlarmManager::class.java)).scheduledAlarms.size)
     }
     @Test fun nextTimeRollsOverAndUsesLocalHourAcrossDst() {
         val original = TimeZone.getDefault()

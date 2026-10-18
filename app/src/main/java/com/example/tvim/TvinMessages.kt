@@ -16,7 +16,7 @@ import kotlin.random.Random
 
 data class TvinMessage(val id: Int, val hour: Int, val minute: Int, val texts: List<String>) {
     constructor(id: Int, hour: Int, minute: Int, text: String) : this(id, hour, minute, listOf(text))
-    val text: String get() = texts.first()
+    val text: String get() = texts.firstOrNull().orEmpty()
 }
 
 class TvinMessages(private val context: Context) {
@@ -39,30 +39,33 @@ class TvinMessages(private val context: Context) {
 
     fun save(message: TvinMessage) {
         require(message.id in 0..1 && message.hour in 0..23 && message.minute in 0..59)
-        require(message.texts.size in 1..30 && message.texts.all { it.isNotBlank() && it.length <= 300 })
+        require(message.texts.size in 0..30 && message.texts.all { it.isNotBlank() && it.length <= 300 })
         prefs.edit().putInt("hour_${message.id}", message.hour)
             .putInt("minute_${message.id}", message.minute)
             .putString("variants_${message.id}", JSONArray(message.texts.map { it.trim() }.distinct()).toString())
-            .remove("text_${message.id}").apply()
+            .putBoolean("custom_only_${message.id}", true).remove("text_${message.id}").apply()
         schedule(message)
     }
 
     private fun variants(id: Int): List<String> {
         val saved = prefs.getString("variants_$id", null)
-        if (saved != null) {
-            val parsed = runCatching {
-                val array = JSONArray(saved)
-                (0 until array.length()).map { array.getString(it).trim() }
-                    .filter { it.isNotBlank() && it.length <= 300 }.distinct().take(30)
-            }.getOrNull()
-            if (!parsed.isNullOrEmpty()) return parsed
-        }
-        // Keep an edited 1.9.13 greeting alongside the new default choices.
-        val legacy = prefs.getString("text_$id", null)?.takeIf { it.isNotBlank() }
-        return (listOfNotNull(legacy) + defaultVariants(id, AppSettings(context).language)).distinct()
+        val parsed = if (saved != null) runCatching {
+            val array = JSONArray(saved)
+            (0 until array.length()).map { array.getString(it).trim() }
+                .filter { it.isNotBlank() && it.length <= 300 }.distinct().take(30)
+        }.getOrDefault(emptyList()) else listOfNotNull(prefs.getString("text_$id", null)?.takeIf { it.isNotBlank() })
+        if (prefs.getBoolean("custom_only_$id", false)) return parsed
+        // One-time removal of shipped greetings; edited and user-created messages survive.
+        val shipped = (legacyDefaultVariants(id, "ru") + legacyDefaultVariants(id, "en") +
+            listOf("Доброе утро!", "Спокойной ночи!", "Good Morning!", "Good Night!")).toSet()
+        val custom = parsed.filterNot { it in shipped }
+        prefs.edit().putString("variants_$id", JSONArray(custom).toString())
+            .putBoolean("custom_only_$id", true).remove("text_$id").apply()
+        return custom
     }
 
-    fun chooseText(message: TvinMessage, random: Random = Random.Default): String {
+    fun chooseText(message: TvinMessage, random: Random = Random.Default): String? {
+        if (message.texts.isEmpty()) return null
         val previous = prefs.getString("last_${message.id}", null)
         val candidates = message.texts.filter { it != previous }.ifEmpty { message.texts }
         val selected = candidates.random(random)
@@ -80,7 +83,10 @@ class TvinMessages(private val context: Context) {
             PendingIntent.FLAG_NO_CREATE or PendingIntent.FLAG_IMMUTABLE)
         if (pending != null) { alarms.cancel(pending); pending.cancel() }
         prefs.edit().remove("scheduled_${message.id}").apply()
-        if (!enabled) return
+        if (!enabled || message.texts.isEmpty()) {
+            NotificationManagerCompat.from(context).cancel("tvin", message.id)
+            return
+        }
         val at = nextTime(message.hour, message.minute, System.currentTimeMillis())
         val next = PendingIntent.getBroadcast(context, message.id, intent(message.id, at),
             PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE)
@@ -103,7 +109,7 @@ class TvinMessages(private val context: Context) {
         if (!notificationsAllowed()) return
         val open = PendingIntent.getActivity(context, 0, Intent(context, MainActivity::class.java),
             PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE)
-        val text = chooseText(message)
+        val text = chooseText(message) ?: return
         val notification = NotificationCompat.Builder(context, CHANNEL)
             .setSmallIcon(android.R.drawable.ic_dialog_info).setContentTitle("TVIM")
             .setContentText(text).setStyle(NotificationCompat.BigTextStyle().bigText(text))
@@ -119,7 +125,7 @@ class TvinMessages(private val context: Context) {
 
     companion object {
         const val CHANNEL = "tvin_messages"
-        fun defaultVariants(id: Int, language: String): List<String> = if (language == "ru") {
+        fun legacyDefaultVariants(id: Int, language: String): List<String> = if (language == "ru") {
             if (id == 0) listOf(
                 "Доброе утро! Пусть сегодня найдётся повод улыбнуться.",
                 "Новый день начинается. Дай себе немного времени проснуться.",

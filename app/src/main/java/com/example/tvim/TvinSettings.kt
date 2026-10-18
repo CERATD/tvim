@@ -60,7 +60,6 @@ fun TvinSettings(lang: String, onDismiss: () -> Unit) {
                             Text(if (ru) "Сообщения по расписанию" else "Scheduled messages", Modifier.weight(1f))
                             TvimSwitch(enabled, { enabled = it; store.enabled = it })
                         }
-                        Text(if (ru) "Случайное пожелание из списка, без повторов подряд." else "A random greeting from your list, with no back-to-back repeats.", color = Color.LightGray)
                         if (enabled && !notificationsAllowed) {
                             Text(if (ru) "Разрешите уведомления, чтобы получать сообщения TVIM." else "Allow notifications to receive TVIM messages.")
                             TextButton(onClick = {
@@ -81,7 +80,6 @@ fun TvinSettings(lang: String, onDismiss: () -> Unit) {
                                 }
                             }
                         }
-                        Text(if (ru) "При энергосбережении Android может задерживать сообщения. Будильники работают отдельно." else "Android may delay messages to save battery. Alarms work separately.", color = Color.LightGray)
                     }
                     "time" -> key(scheduleId) {
                         val time = rememberTimePickerState(selected.hour, selected.minute, is24Hour = true)
@@ -126,7 +124,7 @@ fun TvinSettings(lang: String, onDismiss: () -> Unit) {
                         isError = duplicate,
                         colors = OutlinedTextFieldDefaults.colors(focusedTextColor = Color.White, unfocusedTextColor = Color.White),
                         supportingText = { Text(if (duplicate) { if (ru) "Такой вариант уже есть" else "This choice already exists" } else "${editText.length}/300", color = Color.LightGray) })
-                    if (editingIndex >= 0) TextButton(enabled = selected.texts.size > 1, onClick = {
+                    if (editingIndex >= 0) TextButton( onClick = {
                         save(selected.copy(texts = selected.texts.filterIndexed { index, _ -> index != editingIndex })); showEditor = false
                     }) { Text(if (ru) "Удалить сообщение" else "Delete message") }
                 }

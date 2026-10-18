@@ -12,6 +12,8 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.luminance
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.core.app.NotificationManagerCompat
@@ -32,22 +34,27 @@ fun AlarmReadiness(lang: String) {
     val fullScreen = remember(refresh) { Build.VERSION.SDK_INT < 34 || context.getSystemService(NotificationManager::class.java).canUseFullScreenIntent() }
     val volume = remember(refresh) { (context.getSystemService(Context.AUDIO_SERVICE) as android.media.AudioManager).getStreamVolume(android.media.AudioManager.STREAM_ALARM) }
     if (!exact || !notifications || !fullScreen || volume == 0) {
-        Card(Modifier.fillMaxWidth()) {
+        val background = Color(0xFF1A1A1A)
+        val accent = MaterialTheme.colorScheme.primary
+        val contrast = (maxOf(accent.luminance(), background.luminance()) + 0.05f) /
+            (minOf(accent.luminance(), background.luminance()) + 0.05f)
+        val actionColor = if (contrast >= 4.5f) accent else Color.White
+        Card(Modifier.fillMaxWidth(), colors = CardDefaults.cardColors(containerColor = background, contentColor = Color.White)) {
             Column(Modifier.padding(16.dp)) {
-                Text(if (lang == "ru") "Проверьте настройки будильника" else "Check alarm settings")
+                Text(if (lang == "ru") "Проверьте настройки будильника" else "Check alarm settings", color = Color.White)
                 if (!exact && Build.VERSION.SDK_INT >= 31) TextButton(onClick = {
                     openSystemSettings(context, Intent(Settings.ACTION_REQUEST_SCHEDULE_EXACT_ALARM, Uri.parse("package:${context.packageName}")))
-                }) { Text(if (lang == "ru") "Разрешить точные будильники" else "Allow exact alarms") }
+                }) { Text(if (lang == "ru") "Разрешить точные будильники" else "Allow exact alarms", color = actionColor) }
                 if (!notifications) TextButton(onClick = {
                     openSystemSettings(context, if (Build.VERSION.SDK_INT >= 26) Intent(Settings.ACTION_APP_NOTIFICATION_SETTINGS)
                         .putExtra(Settings.EXTRA_APP_PACKAGE, context.packageName)
                     else Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS, Uri.parse("package:${context.packageName}")))
-                }) { Text(if (lang == "ru") "Включить уведомления будильника" else "Enable alarm notifications") }
+                }) { Text(if (lang == "ru") "Включить уведомления будильника" else "Enable alarm notifications", color = actionColor) }
                 if (!fullScreen && Build.VERSION.SDK_INT >= 34) TextButton(onClick = {
                     openSystemSettings(context, Intent(Settings.ACTION_MANAGE_APP_USE_FULL_SCREEN_INTENT, Uri.parse("package:${context.packageName}")))
-                }) { Text(if (lang == "ru") "Разрешить экран поверх блокировки" else "Allow full-screen alarms") }
+                }) { Text(if (lang == "ru") "Разрешить экран поверх блокировки" else "Allow full-screen alarms", color = actionColor) }
                 if (volume == 0) TextButton(onClick = { openSystemSettings(context, Intent(Settings.ACTION_SOUND_SETTINGS)) }) {
-                    Text(if (lang == "ru") "Системная громкость будильника — 0" else "System alarm volume is zero")
+                    Text(if (lang == "ru") "Системная громкость будильника — 0" else "System alarm volume is zero", color = actionColor)
                 }
             }
         }
