@@ -45,8 +45,8 @@ fun TvinSettings(lang: String, onDismiss: () -> Unit) {
                     Text(if (ru) "Сообщения по расписанию" else "Scheduled messages", Modifier.weight(1f))
                     TvimSwitch(enabled, { enabled = it; store.enabled = it })
                 }
-                Text(if (ru) "Ежедневные пожелания в выбранное время. Можно изменить текст и время каждого сообщения."
-                    else "Daily greetings at your chosen times. Edit each message and its time.", color = Color.LightGray)
+                Text(if (ru) "Каждый день — случайное пожелание из списка, без повторов подряд. Добавляйте свои варианты и меняйте время."
+                    else "A random greeting each day, with no back-to-back repeats. Add your own choices and edit the times.", color = Color.LightGray)
                 if (enabled && !notificationsAllowed) {
                     Text(if (ru) "Разрешите уведомления, чтобы получать сообщения Tvin." else "Allow notifications to receive Tvin messages.")
                     TextButton(onClick = {
@@ -60,7 +60,7 @@ fun TvinSettings(lang: String, onDismiss: () -> Unit) {
                     Surface(color = Color(0xFF1A1A1A), contentColor = Color.White, shape = MaterialTheme.shapes.large) {
                         Column(Modifier.fillMaxWidth().padding(16.dp)) {
                             Text(String.format(Locale.ROOT, "%02d:%02d", message.hour, message.minute), fontSize = 24.sp)
-                            Text(message.text, Modifier.padding(vertical = 12.dp))
+                            Text((if (message.id == 0) { if (ru) "Утро" else "Morning" } else { if (ru) "Вечер" else "Evening" }) + " · ${message.texts.size} " + (if (ru) "вариантов" else "choices"), Modifier.padding(vertical = 12.dp))
                             TextButton(onClick = { editing = message }) { Text(if (ru) "Изменить" else "Edit") }
                         }
                     }
@@ -71,24 +71,26 @@ fun TvinSettings(lang: String, onDismiss: () -> Unit) {
         }
     }
     editing?.let { original ->
-        var text by remember(original) { mutableStateOf(original.text) }
+        var text by remember(original) { mutableStateOf(original.texts.joinToString("\n")) }
         var hour by remember(original) { mutableIntStateOf(original.hour) }
         var minute by remember(original) { mutableIntStateOf(original.minute) }
         AlertDialog(onDismissRequest = { editing = null }, containerColor = Color(0xFF1A1A1A),
             title = { Text(if (ru) "Сообщение Tvin" else "Tvin message", color = Color.White) },
             text = {
-                Column {
-                    OutlinedTextField(value = text, onValueChange = { if (it.length <= 300) text = it },
-                        label = { Text(if (ru) "Текст" else "Text") }, minLines = 2,
+                Column(Modifier.verticalScroll(rememberScrollState())) {
+                    Text(if (ru) "Каждая строка — отдельный вариант. До 30 вариантов, до 300 символов в каждом. Удалите строку, чтобы убрать вариант." else "One choice per line. Up to 30 choices, 300 characters each. Delete a line to remove a choice.", color = Color.LightGray)
+                    OutlinedTextField(value = text, onValueChange = { if (it.length <= 9030) text = it },
+                        label = { Text(if (ru) "Варианты сообщений" else "Message choices") }, minLines = 4, maxLines = 8,
                         colors = OutlinedTextFieldDefaults.colors(focusedTextColor = Color.White, unfocusedTextColor = Color.White),
-                        supportingText = { Text("${text.length}/300", color = Color.LightGray) })
+                        supportingText = { Text(if (ru) "Пустые строки пропускаются" else "Empty lines are ignored", color = Color.LightGray) })
                     TextButton(onClick = {
                         TimePickerDialog(context, { _, h, m -> hour = h; minute = m }, hour, minute, true).show()
                     }) { Text((if (ru) "Время: " else "Time: ") + String.format(Locale.ROOT, "%02d:%02d", hour, minute)) }
                 }
             },
-            confirmButton = { TextButton(enabled = text.isNotBlank(), onClick = {
-                store.save(original.copy(hour = hour, minute = minute, text = text))
+            confirmButton = { val variants = text.lines().map { it.trim() }.filter { it.isNotEmpty() }.distinct()
+                TextButton(enabled = variants.size in 1..30 && variants.all { it.length <= 300 }, onClick = {
+                store.save(original.copy(hour = hour, minute = minute, texts = variants))
                 messages = store.messages(); editing = null
             }) { Text(if (ru) "Сохранить" else "Save") } },
             dismissButton = { TextButton(onClick = { editing = null }) { Text(if (ru) "Отмена" else "Cancel") } })

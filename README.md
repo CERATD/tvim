@@ -1,4 +1,4 @@
-# Tvim 1.9.13
+# Tvim 1.9.14
 
 Aplicație Android pentru alarme, cu interfața existentă în rusă și engleză. Necesită Android 7.0 sau mai nou.
 
@@ -66,7 +66,7 @@ Interfața folosește conceptul din design/tvim-ui-concept-v1.png: negru, cardur
 
 ## Download Tvim 1.9.13
 
-[Download Tvim 1.9.13 APK](https://github.com/CERATD/tvim/releases/download/v1.9.13/Tvim-1.9.13.apk)
+[Download Tvim 1.9.13 APK](https://github.com/CERATD/tvim/releases/download/v1.9.14/Tvim-1.9.14.apk)
 
 [Release notes](RELEASE-1.9.13.md)
 
@@ -151,3 +151,7 @@ Square zero is now a native glyph in both Nothing fonts, matching neighboring di
 Nothing progress rings use one fixed set of dots. Each dot switches from gray to the selected accent, without overlapping tracks. Applies to the next alarm, timer and alarm mission progress.
 
 Optional **Tvin mode** restores daily morning and evening greetings. Enable it under Settings, then edit each message and its time. Notifications may be delayed by Android battery saving; alarms remain independent.
+
+## Update 1.9.14
+
+Tvin mode includes 10 morning and 10 evening greetings in Russian and English. Each notification randomly picks a message without consecutive repeats. Edit up to 30 choices per schedule; previous custom greetings are preserved.

@@ -59,6 +59,7 @@ class TvinMessagesTest {
     @Test fun deliverySchedulesNextDayAndCannotDeliverTwice() {
         shadowOf(context as android.app.Application).grantPermissions(android.Manifest.permission.POST_NOTIFICATIONS)
         store.enabled = true
+        store.save(TvinMessage(0, 8, 0, "Hello!"))
         val at = System.currentTimeMillis()
         val prefs = context.getSharedPreferences("tvin_messages", Context.MODE_PRIVATE)
         prefs.edit().putLong("scheduled_0", at).commit()
@@ -73,6 +74,32 @@ class TvinMessagesTest {
         assertEquals(2, shadowOf(context.getSystemService(AlarmManager::class.java)).scheduledAlarms.size)
         store.enabled = false
         assertEquals(0, notifications.size())
+    }
+    @Test fun randomChoicesCoverPoolWithoutConsecutiveRepeats() {
+        val message = TvinMessage(0, 8, 0, listOf("First", "Second", "Third"))
+        val random = kotlin.random.Random(42)
+        val choices = (1..60).map { store.chooseText(message, random) }
+        assertEquals(message.texts.toSet(), choices.toSet())
+        assertTrue(choices.zipWithNext().all { (a, b) -> a != b })
+        val last = choices.last()
+        assertNotEquals(last, TvinMessages(context).chooseText(message, random))
+    }
+    @Test fun variantsPersistTrimAndDeduplicate() {
+        store.save(TvinMessage(1, 21, 30, listOf(" Good night ", "Rest well", "Good night")))
+        assertEquals(listOf("Good night", "Rest well"), TvinMessages(context).messages()[1].texts)
+        store.save(TvinMessage(1, 21, 30, listOf("Only one")))
+        repeat(3) { assertEquals("Only one", store.chooseText(store.messages()[1])) }
+    }
+    @Test fun legacyCustomMessageSurvivesAlongsideDefaults() {
+        context.getSharedPreferences("tvin_messages", Context.MODE_PRIVATE).edit().putString("text_0", "My greeting").commit()
+        assertTrue(store.messages()[0].texts.contains("My greeting"))
+        assertTrue(store.messages()[0].texts.size >= 10)
+        for (language in listOf("ru", "en")) for (id in 0..1) {
+            assertEquals(10, TvinMessages.defaultVariants(id, language).distinct().size)
+        }
+    }
+    @Test(expected = IllegalArgumentException::class) fun emptyVariantListIsRejected() {
+        store.save(TvinMessage(0, 8, 0, emptyList()))
     }
     @Test fun nextTimeRollsOverAndUsesLocalHourAcrossDst() {
         val original = TimeZone.getDefault()
