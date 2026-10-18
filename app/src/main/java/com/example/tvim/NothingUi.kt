@@ -106,14 +106,26 @@ fun TvimDigitalTime(
     }
 }
 
-fun DrawScope.drawNothingDots(color: Color, startAngle: Float, sweepAngle: Float, strokeWidth: Dp) {
-    val radius = min(size.width, size.height) / 2f - strokeWidth.toPx() / 2f
+/** Paints each dot once on a fixed grid, changing only its color with progress. */
+fun DrawScope.drawNothingProgressDots(
+    color: Color,
+    progress: Float,
+    strokeWidth: Dp,
+    trackColor: Color = Color(0xFF303030)
+) {
+    val stroke = strokeWidth.toPx()
+    val radius = (min(size.width, size.height) / 2f - stroke / 2f).coerceAtLeast(0f)
     val center = Offset(size.width / 2f, size.height / 2f)
-    val count = (kotlin.math.abs(sweepAngle) * PI.toFloat() / 180f * radius / (strokeWidth.toPx() * 1.25f)).toInt().coerceAtLeast(1)
-    for (index in 0..count) {
-        val angle = (startAngle + sweepAngle * index / count) * PI.toFloat() / 180f
-        drawCircle(color, strokeWidth.toPx() * 0.42f,
-            Offset(center.x + cos(angle) * radius, center.y + sin(angle) * radius))
+    val count = (2f * PI.toFloat() * radius / (stroke * 1.25f)).toInt().coerceAtLeast(1)
+    val fraction = if (progress.isFinite()) progress.coerceIn(0f, 1f) else 0f
+    val activeCount = kotlin.math.round(fraction * count).toInt()
+    for (index in 0 until count) {
+        val angle = -PI.toFloat() / 2f + 2f * PI.toFloat() * index / count
+        drawCircle(
+            if (index < activeCount) color else trackColor,
+            stroke * 0.42f,
+            Offset(center.x + cos(angle) * radius, center.y + sin(angle) * radius)
+        )
     }
 }
 

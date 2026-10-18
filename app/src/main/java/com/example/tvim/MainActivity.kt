@@ -89,6 +89,7 @@ class MainActivity : ComponentActivity() {
                 }
                 LaunchedEffect(Unit) {
                     scheduler.scheduleAll()
+                    TvinMessages(context).restore()
                     if (Build.VERSION.SDK_INT >= 33 &&
                         ContextCompat.checkSelfPermission(context, Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED) {
                         launcher.launch(Manifest.permission.POST_NOTIFICATIONS)

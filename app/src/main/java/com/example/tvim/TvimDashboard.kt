@@ -193,8 +193,7 @@ fun NextAlarmCard(alarm: Alarm, onToggle: (Alarm, Boolean) -> Unit, onEdit: (Ala
                 Box(contentAlignment = Alignment.Center) {
                     Canvas(modifier = Modifier.size(80.dp)) {
                         if (nothingDesign) {
-                            drawNothingDots(Color(0xFF303030), 0f, 360f, 8.dp)
-                            drawNothingDots(dynamicCircleColor, -90f, sweepAngle, 8.dp)
+                            drawNothingProgressDots(dynamicCircleColor, sweepAngle / 360f, 8.dp)
                         } else {
                             drawCircle(color = Color.Black.copy(alpha = 0.3f), style = Stroke(width = 8.dp.toPx()))
                             drawArc(color = dynamicCircleColor, startAngle = -90f, sweepAngle = sweepAngle,
@@ -258,6 +257,7 @@ fun SettingsScreen(appSettings: AppSettings, onColorChange: (Color) -> Unit, onL
     var showColorPicker by remember { mutableStateOf(false) }
     var showLangPicker by remember { mutableStateOf(false) }
     var showHistory by remember { mutableStateOf(false) }
+    var showTvin by remember { mutableStateOf(false) }
     val scope = rememberCoroutineScope()
     var showUpdates by remember { mutableStateOf(false) }
     val context = LocalContext.current
@@ -276,6 +276,8 @@ fun SettingsScreen(appSettings: AppSettings, onColorChange: (Color) -> Unit, onL
         
         Spacer(modifier = Modifier.height(16.dp))
         SectionHeader(Strings.get("notifications", lang))
+        SettingsItem(if (lang == "ru") "Режим Tvin" else "Tvin mode",
+            if (lang == "ru") "Пожелания, текст и время сообщений" else "Greetings, message text and schedule", { showTvin = true })
         SettingsItem(
             title = Strings.get("check_updates", lang),
             subtitle = if (lang == "ru") "Загрузка и установка · v" + BuildConfig.VERSION_NAME else "Download and install · v" + BuildConfig.VERSION_NAME,
@@ -303,6 +305,7 @@ fun SettingsScreen(appSettings: AppSettings, onColorChange: (Color) -> Unit, onL
     }
 
     if (showUpdates) UpdateDialog(lang = lang, onDismiss = { showUpdates = false })
+    if (showTvin) TvinSettings(lang, onDismiss = { showTvin = false })
 
     if (showHistory) androidx.compose.ui.window.Dialog(onDismissRequest = { showHistory = false },
         properties = androidx.compose.ui.window.DialogProperties(usePlatformDefaultWidth = false)) {

@@ -241,8 +241,7 @@ class AlarmScreenActivity : ComponentActivity(), SensorEventListener {
             Box(Modifier.size(220.dp), contentAlignment = Alignment.Center) {
                 val progress = (count.toFloat() / required).coerceIn(0f, 1f)
                 if (nothingDesign) androidx.compose.foundation.Canvas(Modifier.fillMaxSize()) {
-                    drawNothingDots(Color(0xFF303030), 0f, 360f, 8.dp)
-                    drawNothingDots(progressColor, -90f, progress * 360f, 8.dp)
+                    drawNothingProgressDots(progressColor, progress, 8.dp)
                 } else CircularProgressIndicator(progress = { progress }, modifier = Modifier.fillMaxSize(), strokeWidth = 8.dp, trackColor = Color(0xFF242424))
                 Column(horizontalAlignment = Alignment.CenterHorizontally) {
                     TvimIcon(Icons.Default.Vibration, null, Modifier.size(48.dp), tint = MaterialTheme.colorScheme.primary)
