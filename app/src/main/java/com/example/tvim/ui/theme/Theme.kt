@@ -18,8 +18,8 @@ import androidx.core.view.WindowCompat
 import com.example.tvim.R
 
 val LocalNothingDesign = staticCompositionLocalOf { false }
-val NothingDisplayFont = FontFamily(Font(R.font.nothing_doto))
-private val NothingTextFont = FontFamily(Font(R.font.matrix_nothing))
+val NothingDisplayFont = FontFamily(Font(R.font.tvim_display_square))
+private val NothingTextFont = FontFamily(Font(R.font.tvim_text_square))
 
 private val NothingTypography = Typography.copy(
     displayLarge = Typography.displayLarge.copy(fontFamily = NothingTextFont, letterSpacing = 1.2.sp),

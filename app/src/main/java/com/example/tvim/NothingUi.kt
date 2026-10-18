@@ -67,9 +67,9 @@ fun TvimDigitalTime(
         return
     }
 
-    val layoutSize = fontSize.value.dp
     val textMeasurer = rememberTextMeasurer()
     val density = LocalDensity.current
+    val layoutSize = with(density) { fontSize.toDp() }
     val digitCellWidth = with(density) {
         textMeasurer.measure(
             text = "0",
@@ -90,7 +90,6 @@ fun TvimDigitalTime(
                 contentAlignment = Alignment.Center
             ) {
                 when (character) {
-                    '0' -> SquareDotZero(Modifier.fillMaxWidth().height(layoutSize * 0.92f), color)
                     ':' -> Column(
                         verticalArrangement = Arrangement.spacedBy(layoutSize * 0.1f),
                         horizontalAlignment = Alignment.CenterHorizontally
@@ -101,24 +100,6 @@ fun TvimDigitalTime(
                     }
                     else -> Text(character.toString(), color = color, fontSize = fontSize,
                         fontFamily = fontFamily, fontWeight = fontWeight, letterSpacing = 0.sp)
-                }
-            }
-        }
-    }
-}
-
-@Composable
-private fun SquareDotZero(modifier: Modifier, color: Color) {
-    Canvas(modifier) {
-        val columns = 5
-        val rows = 7
-        val stepX = size.width / (columns + 1f)
-        val stepY = size.height / (rows + 1f)
-        val radius = min(stepX, stepY) * 0.36f
-        for (row in 0 until rows) {
-            for (column in 0 until columns) {
-                if (row == 0 || row == rows - 1 || column == 0 || column == columns - 1) {
-                    drawCircle(color, radius, Offset(stepX * (column + 1), stepY * (row + 1)))
                 }
             }
         }
