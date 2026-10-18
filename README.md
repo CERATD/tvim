@@ -1,4 +1,4 @@
-# Tvim 1.9.16
+# Tvim 1.9.17
 
 Aplicație Android pentru alarme, cu interfața existentă în rusă și engleză. Necesită Android 7.0 sau mai nou.
 
@@ -66,7 +66,7 @@ Interfața folosește conceptul din design/tvim-ui-concept-v1.png: negru, cardur
 
 ## Download Tvim 1.9.13
 
-[Download Tvim 1.9.13 APK](https://github.com/CERATD/tvim/releases/download/v1.9.16/Tvim-1.9.16.apk)
+[Download Tvim 1.9.13 APK](https://github.com/CERATD/tvim/releases/download/v1.9.17/Tvim-1.9.17.apk)
 
 [Release notes](RELEASE-1.9.13.md)
 
@@ -163,3 +163,7 @@ Renamed the greeting mode to TVIM. Morning and evening message lists now open on
 ## Update 1.9.16
 
 TVIM mode starts without preset messages. Shipped greetings are removed once during upgrade, preserving user-edited messages. Empty lists stay empty and do not schedule notifications. Alarm readiness text is white; permission actions use the accent color with a white fallback for contrast.
+
+## Update 1.9.17
+
+Removed all four corner dots from zero in both custom fonts, across clocks, inputs and interface text. Straight sides, glyph size and spacing are preserved.

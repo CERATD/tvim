@@ -1,10 +1,10 @@
-name: Publish verified Tvim 1.9.16 APK
+name: Publish verified Tvim 1.9.17 APK
 
 on:
   push:
     branches: [master]
     paths:
-      - downloads/Tvim-1.9.16.apk
+      - downloads/Tvim-1.9.17.apk
       - .github/workflows/publish-release.yml
   workflow_dispatch:
 
@@ -12,7 +12,7 @@ permissions:
   contents: write
 
 concurrency:
-  group: release-1.9.16
+  group: release-1.9.17
   cancel-in-progress: false
 
 jobs:
@@ -22,13 +22,13 @@ jobs:
       - uses: actions/checkout@v4
       - name: Verify APK checksum
         working-directory: downloads
-        run: sha256sum --check SHA256-1.9.16.txt
+        run: sha256sum --check SHA256-1.9.17.txt
       - name: Publish update
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          if gh release view v1.9.16 >/dev/null 2>&1; then
-            echo "Release v1.9.16 already exists; preserving published assets."
+          if gh release view v1.9.17 >/dev/null 2>&1; then
+            echo "Release v1.9.17 already exists; preserving published assets."
           else
-            gh release create v1.9.16 downloads/Tvim-1.9.16.apk downloads/SHA256-1.9.16.txt --target "$GITHUB_SHA" --title "Tvim 1.9.16 — Custom Messages and Readable Permissions" --notes-file RELEASE-1.9.16.md --latest
+            gh release create v1.9.17 downloads/Tvim-1.9.17.apk downloads/SHA256-1.9.17.txt --target "$GITHUB_SHA" --title "Tvim 1.9.17 — Zero Without Corner Dots" --notes-file RELEASE-1.9.17.md --latest
           fi

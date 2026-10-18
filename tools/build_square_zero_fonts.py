@@ -1,4 +1,4 @@
-"""Build OFL-derived Nothing fonts with native square zero outlines.
+"""Build OFL-derived Nothing fonts with native straight-sided zero outlines without corner dots.
 Run with fonttools and Pillow installed; original font resources are retained.
 """
 from pathlib import Path
@@ -51,11 +51,14 @@ for src, dst, family in [('nothing_doto', 'tvim_display_square', 'TVIM Display S
         coords, flags = list(contours(font['glyf'][five], font['glyf']))[0]
         for row in range(7):
             for col in range(5):
-                if row in (0,6) or col in (0,4):
+                if (row in (0,6) or col in (0,4)) and not (row in (0,6) and col in (0,4)):
                     parts.append((coords, flags, col*100, row*100-600))
     else:
-        coords, flags = list(contours(font['glyf'][five], font['glyf']))[-1]
-        parts.extend([(coords,flags,0,0), (coords,flags,0,-600)])
+        # The original top/bottom bars already omit the two corner cells.
+        original_parts = list(contours(original, font['glyf']))
+        for index in (0, -1):
+            coords, flags = original_parts[index]
+            parts.append((coords, flags, 0, 0))
         coords, flags = list(contours(original, font['glyf']))[2]
         for row in range(5):
             for dx in (0,400):
