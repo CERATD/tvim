@@ -276,7 +276,7 @@ fun SettingsScreen(appSettings: AppSettings, onColorChange: (Color) -> Unit, onL
         
         Spacer(modifier = Modifier.height(16.dp))
         SectionHeader(Strings.get("notifications", lang))
-        SettingsItem(if (lang == "ru") "Режим Tvin" else "Tvin mode",
+        SettingsItem(if (lang == "ru") "Режим TVIM" else "TVIM mode",
             if (lang == "ru") "Пожелания, текст и время сообщений" else "Greetings, message text and schedule", { showTvin = true })
         SettingsItem(
             title = Strings.get("check_updates", lang),

@@ -98,14 +98,14 @@ class TvinMessages(private val context: Context) {
         if (System.currentTimeMillis() - at !in 0L..(2 * 60 * 60 * 1000L)) return
         val manager = context.getSystemService(NotificationManager::class.java)
         if (Build.VERSION.SDK_INT >= 26) {
-            manager.createNotificationChannel(NotificationChannel(CHANNEL, "Tvin", NotificationManager.IMPORTANCE_DEFAULT))
+            manager.createNotificationChannel(NotificationChannel(CHANNEL, "TVIM", NotificationManager.IMPORTANCE_DEFAULT))
         }
         if (!notificationsAllowed()) return
         val open = PendingIntent.getActivity(context, 0, Intent(context, MainActivity::class.java),
             PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE)
         val text = chooseText(message)
         val notification = NotificationCompat.Builder(context, CHANNEL)
-            .setSmallIcon(android.R.drawable.ic_dialog_info).setContentTitle("Tvin")
+            .setSmallIcon(android.R.drawable.ic_dialog_info).setContentTitle("TVIM")
             .setContentText(text).setStyle(NotificationCompat.BigTextStyle().bigText(text))
             .setContentIntent(open).setAutoCancel(true).build()
         try { manager.notify("tvin", id, notification) } catch (_: SecurityException) { /* Permission revoked. */ }
