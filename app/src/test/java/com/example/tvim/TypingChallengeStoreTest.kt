@@ -18,6 +18,14 @@ class TypingChallengeStoreTest {
             context.getSharedPreferences(it, Context.MODE_PRIVATE).edit().clear().commit()
         }
     }
+    @Test fun russianChallengesUseLargeBookPoolAndRemainStable() {
+        val first = TypingChallengeStore(context).phraseFor("book-alarm", 1, "ru")
+        assertTrue(first.id.startsWith("book-"))
+        assertEquals(first.id, TypingChallengeStore(context).phraseFor("book-alarm", 1, "ru").id)
+        assertTrue(TypingPhrases.phrases.size > 8000)
+        assertTrue(first.russian.length <= 180)
+        assertNotEquals(first.id, TypingChallengeStore(context).phraseFor("book-alarm", 2, "ru").id)
+    }
     @Test fun activityRecreationAndLanguageChangeKeepTheSameSentence() {
         val first = TypingChallengeStore(context).phraseFor("alarm", 1000)
         val restored = TypingChallengeStore(context).phraseFor("alarm", 1000)

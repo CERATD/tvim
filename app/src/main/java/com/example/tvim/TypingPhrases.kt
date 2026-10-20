@@ -4,13 +4,13 @@ import java.text.Normalizer
 import java.util.Locale
 import kotlin.random.Random
 
-data class BookPhrase(val id: String, val russian: String, val english: String) {
-    fun text(language: String): String = if (language == "ru") russian else english
+data class BookPhrase(val id: String, val russian: String, val english: String = "") {
+    fun text(language: String): String = if (language == "ru" || english.isBlank()) russian else english
 }
 
 /** Short excerpts from the user's supplied FB2. English strings are our translations. */
 object TypingPhrases {
-    val phrases = listOf(
+    private val originalPhrases = listOf(
         BookPhrase("got-01", "Сир Уэймар Ройс поглядел на небо без всякого интереса.", "Ser Waymar Royce looked at the sky without any interest."),
         BookPhrase("got-02", "Сир Уэймар Ройс не потрудился ответить.", "Ser Waymar Royce did not bother to answer."),
         BookPhrase("got-03", "Ройс принял это за подтверждение и отвернулся.", "Royce took this as confirmation and turned away."),
@@ -29,10 +29,31 @@ object TypingPhrases {
         BookPhrase("got-16", "Здешняя богороща никогда не нравилась Кэтлин.", "Catelyn had never liked the godswood here.")
     )
 
-    fun choose(previousId: String? = null, random: Random = Random.Default): BookPhrase =
-        phrases.filter { it.id != previousId }.random(random)
+    @Volatile private var bookPhrases: List<BookPhrase> = emptyList()
+    val phrases: List<BookPhrase> get() = originalPhrases + bookPhrases
+    val hasBook: Boolean get() = bookPhrases.isNotEmpty()
 
-    fun byId(id: String?): BookPhrase? = phrases.find { it.id == id }
+    /** Load short Russian passages from the user-provided book bundled with the app. */
+    @Synchronized
+    fun loadBook(lines: List<String>) {
+        if (hasBook) return
+        bookPhrases = lines.mapNotNull { line ->
+            val split = line.indexOf('\t')
+            if (split <= 0 || split == line.lastIndex) return@mapNotNull null
+            val id = line.substring(0, split).trim()
+            val sentence = line.substring(split + 1).trim()
+            if (id.isBlank() || sentence.isBlank()) null else BookPhrase(id, sentence)
+        }.distinctBy { it.id }
+    }
+
+    fun choose(previousId: String? = null, random: Random = Random.Default, language: String = "en"): BookPhrase {
+        val available = if (language == "ru" && bookPhrases.isNotEmpty()) bookPhrases else originalPhrases
+        return available.filter { it.id != previousId }.random(random)
+    }
+
+    fun byId(id: String?): BookPhrase? = id?.let { key ->
+        bookPhrases.find { it.id == key } ?: originalPhrases.find { it.id == key }
+    }
 
     fun normalize(text: String): String = Normalizer.normalize(text, Normalizer.Form.NFC)
         .lowercase(Locale.ROOT).replace('ё', 'е')

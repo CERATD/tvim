@@ -10,6 +10,7 @@ import android.hardware.SensorEventListener
 import android.hardware.SensorManager
 import android.os.*
 import android.view.WindowManager
+import androidx.activity.enableEdgeToEdge
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.Canvas
@@ -61,6 +62,7 @@ class AlarmScreenActivity : ComponentActivity(), SensorEventListener {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        enableEdgeToEdge()
         
         appSettings = AppSettings(this)
         lang = appSettings.language
@@ -85,7 +87,8 @@ class AlarmScreenActivity : ComponentActivity(), SensorEventListener {
 
         if (missionType.value == MissionType.TYPING) typingPhrase = TypingChallengeStore(this).phraseFor(
             alarmId ?: return,
-            getSharedPreferences("alarm_runtime", MODE_PRIVATE).getLong("started", 0)
+            getSharedPreferences("alarm_runtime", MODE_PRIVATE).getLong("started", 0),
+            lang
         )
 
         setContent {
@@ -100,7 +103,11 @@ class AlarmScreenActivity : ComponentActivity(), SensorEventListener {
             }
             TvimTheme(primaryColor = appSettings.primaryColor, nothingDesign = appSettings.nothingDesign) {
                 Surface(modifier = Modifier.fillMaxSize(), color = Color.Black) {
-                    Column(
+                    if (missionType.value == MissionType.TYPING) {
+                        Box(Modifier.fillMaxSize().safeDrawingPadding().imePadding().padding(horizontal = 24.dp, vertical = 32.dp)) {
+                            TypingMission { finishMission() }
+                        }
+                    } else Column(
                         modifier = Modifier.fillMaxSize().systemBarsPadding().imePadding().verticalScroll(rememberScrollState()).padding(24.dp),
                         horizontalAlignment = Alignment.CenterHorizontally,
                         verticalArrangement = Arrangement.SpaceBetween
@@ -259,36 +266,57 @@ class AlarmScreenActivity : ComponentActivity(), SensorEventListener {
         val target = typingPhrase.text(lang)
         var typed by rememberSaveable(typingPhrase.id) { mutableStateOf("") }
         var completed by remember { mutableStateOf(false) }
-        Column(horizontalAlignment = Alignment.CenterHorizontally) {
-            Text(Strings.get("type_to_dismiss", lang), color = Color.Gray, fontSize = 12.sp)
-            Spacer(modifier = Modifier.height(12.dp))
-            Card(colors = CardDefaults.cardColors(containerColor = Color(0xFF1B1B1B)), shape = RoundedCornerShape(20.dp)) {
-                Text(target, modifier = Modifier.padding(24.dp), color = Color.White, fontSize = 22.sp, fontWeight = FontWeight.Medium, textAlign = TextAlign.Center)
+        // The reference stays outside the input's scroll container, so IME focus
+        // cannot scroll it behind the status bar. Long references scroll on their own.
+        BoxWithConstraints(Modifier.fillMaxSize()) {
+            val referenceMaxHeight = maxHeight * 0.42f
+            val topSpace = (maxHeight * 0.08f).coerceIn(12.dp, 48.dp)
+            Column(Modifier.fillMaxSize(), horizontalAlignment = Alignment.CenterHorizontally) {
+                Spacer(Modifier.height(topSpace))
+                Text(Strings.get("type_to_dismiss", lang), color = Color.Gray, fontSize = 12.sp)
+                Spacer(Modifier.height(12.dp))
+                Card(
+                    modifier = Modifier.fillMaxWidth().heightIn(max = referenceMaxHeight),
+                    colors = CardDefaults.cardColors(containerColor = Color(0xFF1B1B1B)),
+                    shape = RoundedCornerShape(20.dp)
+                ) {
+                    Text(
+                        target,
+                        modifier = Modifier.verticalScroll(rememberScrollState()).padding(20.dp),
+                        color = Color.White, fontSize = 24.sp, lineHeight = 32.sp,
+                        fontWeight = FontWeight.Medium, textAlign = TextAlign.Center
+                    )
+                }
+                Spacer(Modifier.height(16.dp))
+                Column(
+                    Modifier.weight(1f).fillMaxWidth().verticalScroll(rememberScrollState()),
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
+                    OutlinedTextField(
+                        value = typed,
+                        onValueChange = {
+                            typed = it.take(maxOf(500, target.length * 2))
+                            if (!completed && TypingPhrases.matches(typed, target)) {
+                                completed = true
+                                onComplete()
+                            }
+                        },
+                        keyboardOptions = KeyboardOptions(capitalization = KeyboardCapitalization.Sentences, autoCorrectEnabled = false),
+                        minLines = 2,
+                        maxLines = 3,
+                        colors = OutlinedTextFieldDefaults.colors(focusedBorderColor = MaterialTheme.colorScheme.primary, unfocusedBorderColor = Color.DarkGray),
+                        textStyle = LocalTextStyle.current.copy(color = Color.White, textAlign = TextAlign.Center),
+                        modifier = Modifier.fillMaxWidth()
+                    )
+                    Spacer(Modifier.height(12.dp))
+                    Text(if (lang == "ru") "Регистр, пунктуация и лишние пробелы не учитываются."
+                        else "Capitalization, punctuation and extra spaces do not matter.",
+                        color = Color.Gray, fontSize = 12.sp, textAlign = TextAlign.Center)
+                    Spacer(Modifier.height(8.dp))
+                    Text(if (lang == "ru") "Джордж Р. Р. Мартин · Игра престолов" else "George R. R. Martin · A Game of Thrones",
+                        color = Color.Gray, fontSize = 11.sp, textAlign = TextAlign.Center)
+                }
             }
-            Spacer(modifier = Modifier.height(8.dp))
-            Text(if (lang == "ru") "Джордж Р. Р. Мартин · Игра престолов" else "George R. R. Martin · A Game of Thrones",
-                color = Color.Gray, fontSize = 11.sp, textAlign = TextAlign.Center)
-            Spacer(modifier = Modifier.height(12.dp))
-            Text(if (lang == "ru") "Регистр, пунктуация и лишние пробелы не учитываются."
-                else "Capitalization, punctuation and extra spaces do not matter.",
-                color = Color.Gray, fontSize = 12.sp, textAlign = TextAlign.Center)
-            Spacer(modifier = Modifier.height(16.dp))
-            OutlinedTextField(
-                value = typed,
-                onValueChange = {
-                    typed = it.take(500)
-                    if (!completed && TypingPhrases.matches(typed, target)) {
-                        completed = true
-                        onComplete()
-                    }
-                },
-                keyboardOptions = KeyboardOptions(capitalization = KeyboardCapitalization.Sentences, autoCorrectEnabled = false),
-                minLines = 2,
-                maxLines = 5,
-                colors = OutlinedTextFieldDefaults.colors(focusedBorderColor = MaterialTheme.colorScheme.primary, unfocusedBorderColor = Color.DarkGray),
-                textStyle = LocalTextStyle.current.copy(color = Color.White, textAlign = TextAlign.Center),
-                modifier = Modifier.fillMaxWidth()
-            )
         }
     }
 

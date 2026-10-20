@@ -17,6 +17,10 @@ class CountdownTimer(private val context: Context) {
     private val prefs = context.getSharedPreferences("countdown_timer", Context.MODE_PRIVATE)
     private val manager = context.getSystemService(AlarmManager::class.java)
 
+    var sound: String
+        get() = context.getSharedPreferences("timer_settings", Context.MODE_PRIVATE).getString("sound", "Morning Light") ?: "Morning Light"
+        set(value) { context.getSharedPreferences("timer_settings", Context.MODE_PRIVATE).edit().putString("sound", value).apply() }
+
     fun snapshot(): TimerSnapshot {
         val status = prefs.getString("status", "idle") ?: "idle"
         return TimerSnapshot(prefs.getString("id", "") ?: "", status, prefs.getLong("duration", 300000),
@@ -41,7 +45,7 @@ class CountdownTimer(private val context: Context) {
         val deadline = SystemClock.elapsedRealtime() + duration
         if (!schedule(id, deadline)) return false
         prefs.edit().putString("id", id).putString("status", "running")
-            .putLong("duration", duration).putLong("remaining", duration).putLong("deadline", deadline)
+            .putString("run_sound", sound).putLong("duration", duration).putLong("remaining", duration).putLong("deadline", deadline)
             .putLong("wallDeadline", System.currentTimeMillis() + duration).commit()
         return true
     }
@@ -82,6 +86,7 @@ class CountdownTimer(private val context: Context) {
     fun alarm(id: String?): Alarm? {
         val state = snapshot()
         return if (state.status == "ringing" && id == state.id) Alarm(id = state.id, hour = 0, minute = 0,
+            ringtoneName = prefs.getString("run_sound", "Morning Light") ?: "Morning Light",
             label = if (AppSettings(context).language == "ru") "Таймер завершён" else "Timer finished") else null
     }
 

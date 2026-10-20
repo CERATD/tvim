@@ -60,7 +60,7 @@ fun StopwatchScreen(lang: String) {
                 }
                 Button(onClick = { if (state.running) store.pause() else store.start(); state = store.snapshot() },
                     modifier = Modifier.weight(1f).heightIn(min = 56.dp), shape = RoundedCornerShape(16.dp),
-                    colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF303030), contentColor = Color.White,
+                    colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary, contentColor = MaterialTheme.colorScheme.onPrimary,
                         disabledContainerColor = Color(0xFF202020), disabledContentColor = Color.Gray)) {
                     Text(if (state.running) (if (lang == "ru") "Пауза" else "Pause")
                         else if (state.elapsed > 0) (if (lang == "ru") "Продолжить" else "Resume")

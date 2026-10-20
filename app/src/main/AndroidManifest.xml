@@ -53,6 +53,7 @@
 
         <activity
             android:name=".AlarmScreenActivity"
+            android:windowSoftInputMode="adjustResize"
             android:exported="false"
             android:excludeFromRecents="true"
             android:showWhenLocked="true"

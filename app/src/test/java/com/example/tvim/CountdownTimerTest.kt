@@ -26,11 +26,31 @@ class CountdownTimerTest {
 
     @Before fun setup() {
         context = RuntimeEnvironment.getApplication()
-        listOf("countdown_timer", "alarms_prefs", "alarm_runtime", "alarm_history").forEach {
+        listOf("countdown_timer", "alarms_prefs", "alarm_runtime", "alarm_history", "timer_settings").forEach {
             context.getSharedPreferences(it, Context.MODE_PRIVATE).edit().clear().commit()
         }
         ShadowAlarmManager.setCanScheduleExactAlarms(true)
         timer = CountdownTimer(context)
+    }
+
+    @Test fun selectedSoundPersistsAndRunningTimerKeepsItsSound() {
+        timer.sound = "library:" + "a".repeat(64)
+        assertEquals(timer.sound, CountdownTimer(context).sound)
+        val selected = timer.sound
+        assertTrue(timer.start(1000))
+        val id = timer.snapshot().id
+        timer.pause()
+        timer.sound = "Morning Light"
+        assertTrue(timer.resume())
+        ShadowSystemClock.advanceBy(Duration.ofSeconds(1))
+        assertTrue(timer.expire(id))
+        assertEquals(selected, CountdownTimer(context).alarm(id)?.ringtoneName)
+        timer.finish(id)
+        assertTrue(timer.start(1000))
+        ShadowSystemClock.advanceBy(Duration.ofSeconds(1))
+        val next = timer.snapshot().id
+        assertTrue(timer.expire(next))
+        assertEquals("Morning Light", timer.alarm(next)?.ringtoneName)
     }
 
     @Test fun rejectsInvalidDurationsAndDoesNotReplaceRunningTimer() {

@@ -459,7 +459,7 @@ fun TvimBottomNavigation(selectedTab: Int, lang: String, onTabSelected: (Int) ->
         )
         items.forEach { item ->
             val isSelected = selectedTab == item.third
-            val selectedColor = if (item.third == 1) Color.White else MaterialTheme.colorScheme.primary
+            val selectedColor = MaterialTheme.colorScheme.primary
             NavigationBarItem(
                 selected = isSelected,
                 onClick = { onTabSelected(item.third) },

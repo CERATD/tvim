@@ -29,6 +29,8 @@ fun TimerScreen(lang: String) {
     var hours by rememberSaveable { mutableStateOf((initialSeconds / 3600).toString()) }
     var minutes by rememberSaveable { mutableStateOf((initialSeconds % 3600 / 60).toString()) }
     var seconds by rememberSaveable { mutableStateOf((initialSeconds % 60).toString()) }
+    var sound by remember { mutableStateOf(timer.sound) }
+    var showSounds by remember { mutableStateOf(false) }
     var error by remember { mutableStateOf(false) }
     LaunchedEffect(Unit) {
         while (true) { state = timer.snapshot(); kotlinx.coroutines.delay(250) }
@@ -81,6 +83,9 @@ fun TimerScreen(lang: String) {
                 }
             }
         }
+        if (idle) OutlinedButton(onClick = { showSounds = true }, modifier = Modifier.fillMaxWidth()) {
+            Text((if (lang == "ru") "Звук окончания: " else "End sound: ") + AlarmSounds.title(context, sound))
+        }
         if (error) Text(if (lang == "ru") "Разрешите точные будильники в настройках и повторите запуск."
             else "Allow exact alarms in settings, then try again.", color = MaterialTheme.colorScheme.primary)
         if (state.status == "ringing") {
@@ -112,6 +117,9 @@ fun TimerScreen(lang: String) {
             }
         }
     }
+    if (showSounds) SoundPickerDialog(sound, onDismiss = { showSounds = false }, onSelect = {
+        sound = it; timer.sound = it; showSounds = false
+    }, lang = lang)
 }
 
 @Composable

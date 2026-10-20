@@ -6,14 +6,14 @@ import kotlin.random.Random
 
 class TypingPhrasesTest {
     @Test fun everyPhraseHasBothSupportedLanguagesAndAUniqueId() {
-        assertEquals(16, TypingPhrases.phrases.size)
-        assertEquals(16, TypingPhrases.phrases.map { it.id }.distinct().size)
+        assertTrue(TypingPhrases.phrases.size >= 16)
+        assertEquals(TypingPhrases.phrases.size, TypingPhrases.phrases.map { it.id }.distinct().size)
         TypingPhrases.phrases.forEach {
             assertTrue(it.text("ru").isNotBlank())
             assertTrue(it.text("en").isNotBlank())
-            assertEquals(it.english, it.text("unknown"))
+            assertEquals(it.english.ifBlank { it.russian }, it.text("unknown"))
             assertTrue(TypingPhrases.matches(it.russian, it.russian))
-            assertTrue(TypingPhrases.matches(it.english, it.english))
+            assertTrue(TypingPhrases.matches(it.text("en"), it.text("en")))
         }
     }
     @Test fun consecutiveOccurrencesDoNotRepeatButSelectionVaries() {
