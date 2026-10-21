@@ -1,4 +1,4 @@
-# Tvim 1.9.18
+# Tvim 1.9.19
 
 Aplicație Android pentru alarme, cu interfața existentă în rusă și engleză. Necesită Android 7.0 sau mai nou.
 
@@ -66,7 +66,7 @@ Interfața folosește conceptul din design/tvim-ui-concept-v1.png: negru, cardur
 
 ## Download Tvim 1.9.13
 
-[Download Tvim 1.9.13 APK](https://github.com/CERATD/tvim/releases/download/v1.9.18/Tvim-1.9.18.apk)
+[Download Tvim 1.9.13 APK](https://github.com/CERATD/tvim/releases/download/v1.9.19/Tvim-1.9.19.apk)
 
 [Release notes](RELEASE-1.9.13.md)
 
@@ -172,3 +172,7 @@ Removed all four corner dots from zero in both custom fonts, across clocks, inpu
 ## Update 1.9.18
 
 Typing references sit below system bars and remain separate from the input scroll area when the keyboard opens. Russian challenges draw from 13,440 passages spanning the entire supplied first-part FB2 archive. Stopwatch controls use the selected accent. Timer end sound can be selected from built-in and imported audio; each running timer retains its selected sound.
+
+## Update 1.9.19
+
+Enabled alarms are displayed in next-occurrence order, accounting for weekdays and tomorrow. Disabled alarms follow, sorted by clock time. The next-alarm card uses the same order.

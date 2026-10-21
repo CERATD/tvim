@@ -90,8 +90,9 @@ fun MainAlarmScreen(
 ) {
     var now by remember { mutableLongStateOf(System.currentTimeMillis()) }
     LaunchedEffect(Unit) { while (true) { now = System.currentTimeMillis(); kotlinx.coroutines.delay(1000) } }
-    val nextAlarm = alarms.filter { it.isEnabled }.minByOrNull { AlarmTime.next(it, now) }
-    val remainingAlarms = if (nextAlarm != null) alarms.filter { it.id != nextAlarm.id } else alarms
+    val orderedAlarms = AlarmTime.ordered(alarms, now)
+    val nextAlarm = orderedAlarms.firstOrNull { it.isEnabled }
+    val remainingAlarms = orderedAlarms.filter { it.id != nextAlarm?.id }
 
     LazyColumn(
         modifier = Modifier.fillMaxSize().padding(horizontal = 16.dp),

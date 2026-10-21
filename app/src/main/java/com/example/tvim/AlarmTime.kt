@@ -5,6 +5,13 @@ import java.util.TimeZone
 
 /** Shared by scheduling and the UI. Days are ISO Monday=1 through Sunday=7. */
 object AlarmTime {
+    /** Enabled alarms by actual occurrence; disabled alarms follow in clock order. */
+    fun ordered(alarms: List<Alarm>, now: Long, zone: TimeZone = TimeZone.getDefault()): List<Alarm> =
+        alarms.map { alarm -> alarm to if (alarm.isEnabled) next(alarm, now, zone) else Long.MAX_VALUE }
+            .sortedWith(compareBy<Pair<Alarm, Long>> { it.second }
+                .thenBy { it.first.hour }.thenBy { it.first.minute }.thenBy { it.first.id })
+            .map { it.first }
+
     fun next(alarm: Alarm, now: Long = System.currentTimeMillis(), zone: TimeZone = TimeZone.getDefault()): Long {
         require(alarm.hour in 0..23 && alarm.minute in 0..59)
         val days = alarm.days.filter { it in 1..7 }

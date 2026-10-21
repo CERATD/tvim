@@ -1,10 +1,10 @@
-name: Publish verified Tvim 1.9.18 APK
+name: Publish verified Tvim 1.9.19 APK
 
 on:
   push:
     branches: [master]
     paths:
-      - downloads/Tvim-1.9.18.apk
+      - downloads/Tvim-1.9.19.apk
       - .github/workflows/publish-release.yml
   workflow_dispatch:
 
@@ -12,7 +12,7 @@ permissions:
   contents: write
 
 concurrency:
-  group: release-1.9.18
+  group: release-1.9.19
   cancel-in-progress: false
 
 jobs:
@@ -22,13 +22,13 @@ jobs:
       - uses: actions/checkout@v4
       - name: Verify APK checksum
         working-directory: downloads
-        run: sha256sum --check SHA256-1.9.18.txt
+        run: sha256sum --check SHA256-1.9.19.txt
       - name: Publish update
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          if gh release view v1.9.18 >/dev/null 2>&1; then
-            echo "Release v1.9.18 already exists; preserving published assets."
+          if gh release view v1.9.19 >/dev/null 2>&1; then
+            echo "Release v1.9.19 already exists; preserving published assets."
           else
-            gh release create v1.9.18 downloads/Tvim-1.9.18.apk downloads/SHA256-1.9.18.txt --target "$GITHUB_SHA" --title "Tvim 1.9.18 — Typing and Timer Improvements" --notes-file RELEASE-1.9.18.md --latest
+            gh release create v1.9.19 downloads/Tvim-1.9.19.apk downloads/SHA256-1.9.19.txt --target "$GITHUB_SHA" --title "Tvim 1.9.19 — Alarms in Firing Order" --notes-file RELEASE-1.9.19.md --latest
           fi
